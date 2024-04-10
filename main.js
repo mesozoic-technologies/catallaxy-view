@@ -43,9 +43,13 @@ const ctlxyUsdFacilityAbi = parseAbi([
 
 ])
 
-let account, transport, publicCient, walletClient
-let comptroller, ctlxyEth, ctlxyCtlxyUsd, ctlxyUsdFacility, ctlxyUsd, weth
+const $ = document.querySelector.bind(document);
+const ERR_ACCT = '0x' + '1'.repeat(40);
+
+let account, transport, publicClient, walletClient
+let comptroller, ctlxyEth, ctlxyCtlxyUsd, ctlxyUsdFacility, ctlxyUsd, weth, feed
 let store = {}
+let chain = sepolia
 
 const updateCatallaxyStats = async () => {
 
@@ -64,3 +68,35 @@ const valueNFTs = async (nfts) => {
 }
 
 
+
+const simpleConnect = async () => {
+    let _account, _transport
+    console.log("wtf")
+    try {
+        if (!window.ethereum) throw new Error();
+        [_account] = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        _transport = custom(window.ethereum)
+    } catch (error) {
+        _account = ERR_ACCT
+        _transport = http()
+        $('#connectionError').style.display = "block"
+    }
+    return [_account, _transport]
+}
+
+window.onload = async () => {
+
+    [account, transport] = await simpleConnect();
+
+    walletClient = createWalletClient({ account, chain: chain, transport })
+    publicClient = createPublicClient({ batch: { multicall: true }, chain: chain, transport })
+
+    const _client = {public: publicClient, wallet: walletClient}
+
+    // weth = getContract({ address: wethAddr, abi: wethAbi, client: _client })
+    // ctlxyUsd = getContract({ addresss: ctlxyUsdAddr, abi: ctlxyUsdAbi, client: _client })
+    // feed = getContract({ address: feedAddr, abi: feedAbi, client: _client })
+
+
+
+}

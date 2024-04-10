@@ -2,12 +2,13 @@
   "name": "catallaxy-view",
   "version": "1.0.0",
   "description": "",
+  "type": "module",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "build": "webpack --config webpack.config.js",
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d ."
+    "deploy": "gh-pages -d .",
+    "start": "lite-server"
   },
   "author": "",
   "license": "ISC",
@@ -16,7 +17,17 @@
   },
   "devDependencies": {
     "gh-pages": "^6.1.1",
+    "lite-server": "^2.6.1",
     "webpack": "^5.91.0",
     "webpack-cli": "^5.1.4"
-  }
+  },
+  "lite": {
+    "port": 3000,
+    "files": [ "./*.{html,htm,css,js}" ],
+    "logLevel": "info",
+    "server": {
+      "baseDir": ".",
+      "routes": { "/node_modules": "node_modules" }
+    }
+  },
 }
