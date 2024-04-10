@@ -1,14 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        <script defer src="./main.unmin.js"></script>
+        <meta charset="UTF-8">
+        <meta name=""viewport" content="width=device-width, initial-scale=1.0">
+        <title> Catallaxy Money Market and Stablecoin </title>
         <link rel="stylesheet" type="text/css" href="styles.css">
+        <script defer src="./dependencies.unmin.js"></script>
+        <script defer src="./main.unmin.js"></script>
     </head>
     <body>
 
         <h1>
             Catallaxy
         </h1>
+
+        <div id="connectionError" style="display:none; color: red;">
+            <p>No account found, use a browser wallet like frame.sh/rabby/metamask and allow access</p>
+        </div>
+
+        <div id="balances">
+        </div>
+
+        <div id="erc20Hook" style="display:none">
+
+        </div>
 
 
     </body>
