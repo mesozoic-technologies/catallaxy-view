@@ -14,6 +14,13 @@ body {
     --webkit-filter: grayscale(100%);
     filter: grayscale(100%);
     color: white;
+
+    transform: scale(3);
+    transform-origin: top left;
+    width: 33.3333%;
+    height: 33.3333%;
+
+    
 }
 
 .btn {
