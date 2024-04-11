@@ -17,89 +17,89 @@ const CTLXY_USD_FACILITY="0x993C7218C535589f5683D03Aa3cC485873B108d4"
 const CATALLAXY_FEED="0x16C06d4D1e63f070FCD786805AF6F7C2dd729aDC"
 
 const erc20 = [
-    "allowance(address,address)",
-    "approve(address,uint256)",
-    "balanceOf(address)",
-    "name()",
-    "symbol()",
-    "totalSupply()",
-    "transfer(address,uint256)",
-    "transferFrom(address,address,uint256)"
+    "function allowance(address,address)",
+    "function approve(address,uint256)",
+    "function balanceOf(address)",
+    "function name()",
+    "function symbol()",
+    "function totalSupply()",
+    "function transfer(address,uint256)",
+    "function transferFrom(address,address,uint256)"
 ]
 
 const feedAbi = parseAbi([
-    "MAX_INTEGER()",
-    "MAX_TOKENS()",
-    "getTokenConfig(uint256)",
-    "getTokenConfigByCToken(address)",
-    "getTokenConfigByReporter(address)",
-    "getTokenConfigBySymbol(string)",
-    "getTokenConfigBySymbolHash(bytes32)",
-    "getTokenConfigByUnderlying(address)",
-    "getUnderlyingPrice(address)",
-    "numTokens()",
-    "price(string)",
+    "function MAX_INTEGER()",
+    "function MAX_TOKENS()",
+    "function getTokenConfig(uint256)",
+    "function getTokenConfigByCToken(address)",
+    "function getTokenConfigByReporter(address)",
+    "function getTokenConfigBySymbol(string)",
+    "function getTokenConfigBySymbolHash(bytes32)",
+    "function getTokenConfigByUnderlying(address)",
+    "function getUnderlyingPrice(address)",
+    "function numTokens()",
+    "function price(string)",
 ])
 
 const comptrollerAbi = parseAbi([
-    "accountAssets(address,uint256)",
-    "allMarkets(uint256)",
-    "borrowAllowed(address,address,uint256)",
-    "borrowGuardianPaused(address)",
-    "closeFactor()",
-    "enterMarkets(address[])",
-    "exitMarket(address)",
-    "feed()",
-    "initialize(address)",
-    "liquidateBorrowAllowed(address,address,address,address,uint256)",
-    "liquidateCalculateSeizeTokens(address,address,uint256)",
-    "liquidationIncentive()",
-    "markets(address)",
-    "maxAssets()",
-    "mintAllowed(address,address,uint256)",
-    "mintGuardianPaused(address)",
-    "owner()",
-    "redeemAllowed(address,address,uint256)",
-    "renounceOwnership()",
-    "repayBorrowAllowed(address,address,address,uint256)",
-    "seizeAllowed(address,address,address,address,uint256)",
-    "seizeGuardianPaused()",
-    "supportMarket(address)",
-    "transferAllowed(address,address,address,uint256)",
-    "transferOwnership(address)",
+    "function accountAssets(address,uint256)",
+    "function allMarkets(uint256)",
+    "function borrowAllowed(address,address,uint256)",
+    "function borrowGuardianPaused(address)",
+    "function closeFactor()",
+    "function enterMarkets(address[])",
+    "function exitMarket(address)",
+    "function feed()",
+    "function initialize(address)",
+    "function liquidateBorrowAllowed(address,address,address,address,uint256)",
+    "function liquidateCalculateSeizeTokens(address,address,uint256)",
+    "function liquidationIncentive()",
+    "function markets(address)",
+    "function maxAssets()",
+    "function mintAllowed(address,address,uint256)",
+    "function mintGuardianPaused(address)",
+    "function owner()",
+    "function redeemAllowed(address,address,uint256)",
+    "function renounceOwnership()",
+    "function repayBorrowAllowed(address,address,address,uint256)",
+    "function seizeAllowed(address,address,address,address,uint256)",
+    "function seizeGuardianPaused()",
+    "function supportMarket(address)",
+    "function transferAllowed(address,address,address,uint256)",
+    "function transferOwnership(address)",
 ])
 
 const ctlxyTokenAbi = parseAbi(erc20.concat([
-    "accrualBlockNumber()",
-    "accrueInterest()",
-    "balanceOfUnderlying(address) ",
-    "borrowBalanceCurrent(address) ",
-    "borrowBalanceStored(address) ",
-    "borrowRatePerBlock()",
-    "cash()",
-    "comptroller()",
-    "exchangeRateCurrent()",
-    "exchangeRateStored()",
-    "getAccountSnapshot(address) ",
-    "seize(address,address,uint256) ",
-    "supplyRatePerBlock()",
-    "totalBorrowsCurrent()",
+    "function accrualBlockNumber()",
+    "function accrueInterest()",
+    "function balanceOfUnderlying(address)",
+    "function borrowBalanceCurrent(address)",
+    "function borrowBalanceStored(address)",
+    "function borrowRatePerBlock()",
+    "function cash()",
+    "function comptroller()",
+    "function exchangeRateCurrent()",
+    "function exchangeRateStored()",
+    "function getAccountSnapshot(address)",
+    "function seize(address,address,uint256)",
+    "function supplyRatePerBlock()",
+    "function totalBorrowsCurrent()",
 ]))
 
 const ctlxyUsdAbi = parseAbi(erc20.concat([]))
 
 const jumpRateModelAbi = parseAbi([
-    "baseRatePerBlock()",
-    "blocksPerYear()",
-    "getBorrowRate(uint256,uint256,uint256)",
-    "getSupplyRate(uint256,uint256,uint256,uint256)",
-    "jumpMultiplierPerBlock()",
-    "kink()",
-    "multiplierPerBlock()",
-    "utilizationRate(uint256,uint256,uint256)"
+    "function baseRatePerBlock()",
+    "function blocksPerYear()",
+    "function getBorrowRate(uint256,uint256,uint256)",
+    "function getSupplyRate(uint256,uint256,uint256,uint256)",
+    "function jumpMultiplierPerBlock()",
+    "function kink()",
+    "function multiplierPerBlock()",
+    "function utilizationRate(uint256,uint256,uint256)"
 ])
 
-const wethAbi = parseAbi(erc20.concat([ "drip()" ]))
+const wethAbi = parseAbi(erc20.concat([ "function drip()" ]))
 
 const ctlxyUsdFacilityAbi = parseAbi([
 
@@ -131,10 +131,19 @@ const valueNFTs = async (nfts) => {
 }
 
 
+const drip = async () => {
+    try {
+        const { request } = await weth.simulate.drip()
+        const hash = walletClient.writeContract(request)
+        await publicClient.waitForTransactionReceipt({hash})
+    } catch (err) {
+        console.log("err", err)
+    }
+}
+
 
 const simpleConnect = async () => {
     let _account, _transport
-    console.log("wtf")
     try {
         if (!window.ethereum) throw new Error();
         [_account] = await window.ethereum.request({ method: 'eth_requestAccounts' });
@@ -165,5 +174,9 @@ window.onload = async () => {
     ctlxyEthInterestRate = getContract({ address: CTLXY_ETH_INTEREST_RATE, abi: jumpRateModelAbi, client: _client })
     ctlxyUsdInterestRate = getContract({ address: CTLXY_USD_INTEREST_RATE, abi: jumpRateModelAbi, client: _client })
     ctlxyCtlxyUsdInterestRate = getContract({ address: CTLXY_CTLXY_USD_INTEREST_RATE, abi: jumpRateModelAbi, client: _client })
+
+    $("#btnDrip").addEventListener('click', async () => {
+        await drip()
+    })
 
 }

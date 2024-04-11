@@ -15,4 +15,7 @@ body {
     filter: grayscale(100%);
     color: white;
 }
-body::
+
+.btn {
+    font-family: monospace;
+}
