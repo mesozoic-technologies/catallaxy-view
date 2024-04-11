@@ -4,7 +4,7 @@ body {
     margin-right: auto;
     font-family: monospace;
     justify-content: center;
-    background-image: url('./catallaxy.jpg');
+    background: linear-gradient(rgba(0, 0, 0, 0.95), rgba(0, 0, 0, 0.0)), url('catallaxy.jpg');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
@@ -14,4 +14,8 @@ body {
     --webkit-filter: grayscale(100%);
     filter: grayscale(100%);
     color: white;
+}
+
+.btn {
+    font-family: monospace;
 }

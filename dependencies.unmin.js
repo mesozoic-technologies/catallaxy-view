@@ -1031,6 +1031,238 @@ function parseAccount(account) {
 
 /***/ }),
 
+/***/ 718:
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   PF: () => (/* binding */ getContract)
+/* harmony export */ });
+/* unused harmony exports getFunctionParameters, getEventParameters */
+/* harmony import */ var _utils_getAction_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(3692);
+/* harmony import */ var _public_createContractEventFilter_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(1100);
+/* harmony import */ var _public_estimateContractGas_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(965);
+/* harmony import */ var _public_getContractEvents_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(1443);
+/* harmony import */ var _public_readContract_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(6724);
+/* harmony import */ var _public_simulateContract_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(8318);
+/* harmony import */ var _public_watchContractEvent_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(301);
+/* harmony import */ var _wallet_writeContract_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(9177);
+
+
+
+
+
+
+
+
+/**
+ * Gets type-safe interface for performing contract-related actions with a specific `abi` and `address`.
+ *
+ * - Docs https://viem.sh/docs/contract/getContract
+ *
+ * Using Contract Instances can make it easier to work with contracts if you don't want to pass the `abi` and `address` properites every time you perform contract actions, e.g. [`readContract`](https://viem.sh/docs/contract/readContract), [`writeContract`](https://viem.sh/docs/contract/writeContract), [`estimateContractGas`](https://viem.sh/docs/contract/estimateContractGas), etc.
+ *
+ * @example
+ * import { createPublicClient, getContract, http, parseAbi } from 'viem'
+ * import { mainnet } from 'viem/chains'
+ *
+ * const publicClient = createPublicClient({
+ *   chain: mainnet,
+ *   transport: http(),
+ * })
+ * const contract = getContract({
+ *   address: '0xFBA3912Ca04dd458c843e2EE08967fC04f3579c2',
+ *   abi: parseAbi([
+ *     'function balanceOf(address owner) view returns (uint256)',
+ *     'function ownerOf(uint256 tokenId) view returns (address)',
+ *     'function totalSupply() view returns (uint256)',
+ *   ]),
+ *   client: publicClient,
+ * })
+ */
+function getContract({ abi, address, client: client_, }) {
+    const client = client_;
+    const [publicClient, walletClient] = (() => {
+        if (!client)
+            return [undefined, undefined];
+        if ('public' in client && 'wallet' in client)
+            return [client.public, client.wallet];
+        if ('public' in client)
+            return [client.public, undefined];
+        if ('wallet' in client)
+            return [undefined, client.wallet];
+        return [client, client];
+    })();
+    const hasPublicClient = publicClient !== undefined && publicClient !== null;
+    const hasWalletClient = walletClient !== undefined && walletClient !== null;
+    const contract = {};
+    let hasReadFunction = false;
+    let hasWriteFunction = false;
+    let hasEvent = false;
+    for (const item of abi) {
+        if (item.type === 'function')
+            if (item.stateMutability === 'view' || item.stateMutability === 'pure')
+                hasReadFunction = true;
+            else
+                hasWriteFunction = true;
+        else if (item.type === 'event')
+            hasEvent = true;
+        // Exit early if all flags are `true`
+        if (hasReadFunction && hasWriteFunction && hasEvent)
+            break;
+    }
+    if (hasPublicClient) {
+        if (hasReadFunction)
+            contract.read = new Proxy({}, {
+                get(_, functionName) {
+                    return (...parameters) => {
+                        const { args, options } = getFunctionParameters(parameters);
+                        return (0,_utils_getAction_js__WEBPACK_IMPORTED_MODULE_0__/* .getAction */ .T)(publicClient, _public_readContract_js__WEBPACK_IMPORTED_MODULE_1__/* .readContract */ .J, 'readContract')({
+                            abi,
+                            address,
+                            functionName,
+                            args,
+                            ...options,
+                        });
+                    };
+                },
+            });
+        if (hasWriteFunction)
+            contract.simulate = new Proxy({}, {
+                get(_, functionName) {
+                    return (...parameters) => {
+                        const { args, options } = getFunctionParameters(parameters);
+                        return (0,_utils_getAction_js__WEBPACK_IMPORTED_MODULE_0__/* .getAction */ .T)(publicClient, _public_simulateContract_js__WEBPACK_IMPORTED_MODULE_2__/* .simulateContract */ .v, 'simulateContract')({
+                            abi,
+                            address,
+                            functionName,
+                            args,
+                            ...options,
+                        });
+                    };
+                },
+            });
+        if (hasEvent) {
+            contract.createEventFilter = new Proxy({}, {
+                get(_, eventName) {
+                    return (...parameters) => {
+                        const abiEvent = abi.find((x) => x.type === 'event' && x.name === eventName);
+                        const { args, options } = getEventParameters(parameters, abiEvent);
+                        return (0,_utils_getAction_js__WEBPACK_IMPORTED_MODULE_0__/* .getAction */ .T)(publicClient, _public_createContractEventFilter_js__WEBPACK_IMPORTED_MODULE_3__/* .createContractEventFilter */ .X, 'createContractEventFilter')({
+                            abi,
+                            address,
+                            eventName,
+                            args,
+                            ...options,
+                        });
+                    };
+                },
+            });
+            contract.getEvents = new Proxy({}, {
+                get(_, eventName) {
+                    return (...parameters) => {
+                        const abiEvent = abi.find((x) => x.type === 'event' && x.name === eventName);
+                        const { args, options } = getEventParameters(parameters, abiEvent);
+                        return (0,_utils_getAction_js__WEBPACK_IMPORTED_MODULE_0__/* .getAction */ .T)(publicClient, _public_getContractEvents_js__WEBPACK_IMPORTED_MODULE_4__/* .getContractEvents */ .u, 'getContractEvents')({
+                            abi,
+                            address,
+                            eventName,
+                            args,
+                            ...options,
+                        });
+                    };
+                },
+            });
+            contract.watchEvent = new Proxy({}, {
+                get(_, eventName) {
+                    return (...parameters) => {
+                        const abiEvent = abi.find((x) => x.type === 'event' && x.name === eventName);
+                        const { args, options } = getEventParameters(parameters, abiEvent);
+                        return (0,_utils_getAction_js__WEBPACK_IMPORTED_MODULE_0__/* .getAction */ .T)(publicClient, _public_watchContractEvent_js__WEBPACK_IMPORTED_MODULE_5__/* .watchContractEvent */ .q, 'watchContractEvent')({
+                            abi,
+                            address,
+                            eventName,
+                            args,
+                            ...options,
+                        });
+                    };
+                },
+            });
+        }
+    }
+    if (hasWalletClient) {
+        if (hasWriteFunction)
+            contract.write = new Proxy({}, {
+                get(_, functionName) {
+                    return (...parameters) => {
+                        const { args, options } = getFunctionParameters(parameters);
+                        return (0,_utils_getAction_js__WEBPACK_IMPORTED_MODULE_0__/* .getAction */ .T)(walletClient, _wallet_writeContract_js__WEBPACK_IMPORTED_MODULE_6__/* .writeContract */ .E, 'writeContract')({
+                            abi,
+                            address,
+                            functionName,
+                            args,
+                            ...options,
+                        });
+                    };
+                },
+            });
+    }
+    if (hasPublicClient || hasWalletClient)
+        if (hasWriteFunction)
+            contract.estimateGas = new Proxy({}, {
+                get(_, functionName) {
+                    return (...parameters) => {
+                        const { args, options } = getFunctionParameters(parameters);
+                        const client = (publicClient ?? walletClient);
+                        return (0,_utils_getAction_js__WEBPACK_IMPORTED_MODULE_0__/* .getAction */ .T)(client, _public_estimateContractGas_js__WEBPACK_IMPORTED_MODULE_7__/* .estimateContractGas */ .W, 'estimateContractGas')({
+                            abi,
+                            address,
+                            functionName,
+                            args,
+                            ...options,
+                            account: options.account ??
+                                walletClient.account,
+                        });
+                    };
+                },
+            });
+    contract.address = address;
+    contract.abi = abi;
+    return contract;
+}
+/**
+ * @internal exporting for testing only
+ */
+function getFunctionParameters(values) {
+    const hasArgs = values.length && Array.isArray(values[0]);
+    const args = hasArgs ? values[0] : [];
+    const options = (hasArgs ? values[1] : values[0]) ?? {};
+    return { args, options };
+}
+/**
+ * @internal exporting for testing only
+ */
+function getEventParameters(values, abiEvent) {
+    let hasArgs = false;
+    // If first item is array, must be `args`
+    if (Array.isArray(values[0]))
+        hasArgs = true;
+    // Check if first item is `args` or `options`
+    else if (values.length === 1) {
+        // if event has indexed inputs, must have `args`
+        hasArgs = abiEvent.inputs.some((x) => x.indexed);
+        // If there are two items in array, must have `args`
+    }
+    else if (values.length === 2) {
+        hasArgs = true;
+    }
+    const args = hasArgs ? values[0] : undefined;
+    const options = (hasArgs ? values[1] : values[0]) ?? {};
+    return { args, options };
+}
+//# sourceMappingURL=getContract.js.map
+
+/***/ }),
+
 /***/ 6782:
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
@@ -1346,6 +1578,151 @@ function parseStateOverride(args) {
     return rpcStateOverride;
 }
 //# sourceMappingURL=call.js.map
+
+/***/ }),
+
+/***/ 1100:
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   X: () => (/* binding */ createContractEventFilter)
+/* harmony export */ });
+/* harmony import */ var _utils_abi_encodeEventTopics_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(5226);
+/* harmony import */ var _utils_encoding_toHex_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(4192);
+/* harmony import */ var _utils_filters_createFilterRequestScope_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(3109);
+
+
+
+/**
+ * Creates a Filter to retrieve event logs that can be used with [`getFilterChanges`](https://viem.sh/docs/actions/public/getFilterChanges) or [`getFilterLogs`](https://viem.sh/docs/actions/public/getFilterLogs).
+ *
+ * - Docs: https://viem.sh/docs/contract/createContractEventFilter
+ *
+ * @param client - Client to use
+ * @param parameters - {@link CreateContractEventFilterParameters}
+ * @returns [`Filter`](https://viem.sh/docs/glossary/types#filter). {@link CreateContractEventFilterReturnType}
+ *
+ * @example
+ * import { createPublicClient, http, parseAbi } from 'viem'
+ * import { mainnet } from 'viem/chains'
+ * import { createContractEventFilter } from 'viem/contract'
+ *
+ * const client = createPublicClient({
+ *   chain: mainnet,
+ *   transport: http(),
+ * })
+ * const filter = await createContractEventFilter(client, {
+ *   abi: parseAbi(['event Transfer(address indexed, address indexed, uint256)']),
+ * })
+ */
+async function createContractEventFilter(client, parameters) {
+    const { address, abi, args, eventName, fromBlock, strict, toBlock } = parameters;
+    const getRequest = (0,_utils_filters_createFilterRequestScope_js__WEBPACK_IMPORTED_MODULE_0__/* .createFilterRequestScope */ .g)(client, {
+        method: 'eth_newFilter',
+    });
+    const topics = eventName
+        ? (0,_utils_abi_encodeEventTopics_js__WEBPACK_IMPORTED_MODULE_1__/* .encodeEventTopics */ .R)({
+            abi,
+            args,
+            eventName,
+        })
+        : undefined;
+    const id = await client.request({
+        method: 'eth_newFilter',
+        params: [
+            {
+                address,
+                fromBlock: typeof fromBlock === 'bigint' ? (0,_utils_encoding_toHex_js__WEBPACK_IMPORTED_MODULE_2__/* .numberToHex */ .cK)(fromBlock) : fromBlock,
+                toBlock: typeof toBlock === 'bigint' ? (0,_utils_encoding_toHex_js__WEBPACK_IMPORTED_MODULE_2__/* .numberToHex */ .cK)(toBlock) : toBlock,
+                topics,
+            },
+        ],
+    });
+    return {
+        abi,
+        args,
+        eventName,
+        id,
+        request: getRequest(id),
+        strict: Boolean(strict),
+        type: 'event',
+    };
+}
+//# sourceMappingURL=createContractEventFilter.js.map
+
+/***/ }),
+
+/***/ 965:
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   W: () => (/* binding */ estimateContractGas)
+/* harmony export */ });
+/* harmony import */ var _accounts_utils_parseAccount_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(3033);
+/* harmony import */ var _utils_abi_encodeFunctionData_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(8503);
+/* harmony import */ var _utils_errors_getContractError_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(2350);
+/* harmony import */ var _utils_getAction_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(3692);
+/* harmony import */ var _estimateGas_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(432);
+
+
+
+
+
+/**
+ * Estimates the gas required to successfully execute a contract write function call.
+ *
+ * - Docs: https://viem.sh/docs/contract/estimateContractGas
+ *
+ * Internally, uses a [Public Client](https://viem.sh/docs/clients/public) to call the [`estimateGas` action](https://viem.sh/docs/actions/public/estimateGas) with [ABI-encoded `data`](https://viem.sh/docs/contract/encodeFunctionData).
+ *
+ * @param client - Client to use
+ * @param parameters - {@link EstimateContractGasParameters}
+ * @returns The gas estimate (in wei). {@link EstimateContractGasReturnType}
+ *
+ * @example
+ * import { createPublicClient, http, parseAbi } from 'viem'
+ * import { mainnet } from 'viem/chains'
+ * import { estimateContractGas } from 'viem/contract'
+ *
+ * const client = createPublicClient({
+ *   chain: mainnet,
+ *   transport: http(),
+ * })
+ * const gas = await estimateContractGas(client, {
+ *   address: '0xFBA3912Ca04dd458c843e2EE08967fC04f3579c2',
+ *   abi: parseAbi(['function mint() public']),
+ *   functionName: 'mint',
+ *   account: '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266',
+ * })
+ */
+async function estimateContractGas(client, parameters) {
+    const { abi, address, args, functionName, ...request } = parameters;
+    const data = (0,_utils_abi_encodeFunctionData_js__WEBPACK_IMPORTED_MODULE_0__/* .encodeFunctionData */ .p)({
+        abi,
+        args,
+        functionName,
+    });
+    try {
+        const gas = await (0,_utils_getAction_js__WEBPACK_IMPORTED_MODULE_1__/* .getAction */ .T)(client, _estimateGas_js__WEBPACK_IMPORTED_MODULE_2__/* .estimateGas */ .Q, 'estimateGas')({
+            data,
+            to: address,
+            ...request,
+        });
+        return gas;
+    }
+    catch (error) {
+        const account = request.account ? (0,_accounts_utils_parseAccount_js__WEBPACK_IMPORTED_MODULE_3__/* .parseAccount */ .J)(request.account) : undefined;
+        throw (0,_utils_errors_getContractError_js__WEBPACK_IMPORTED_MODULE_4__/* .getContractError */ .j)(error, {
+            abi,
+            address,
+            args,
+            docsPath: '/docs/contract/estimateContractGas',
+            functionName,
+            sender: account?.address,
+        });
+    }
+}
+//# sourceMappingURL=estimateContractGas.js.map
 
 /***/ }),
 
@@ -1774,6 +2151,112 @@ async function getBlock(client, { blockHash, blockNumber, blockTag: blockTag_, i
 
 /***/ }),
 
+/***/ 5639:
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+
+// EXPORTS
+__webpack_require__.d(__webpack_exports__, {
+  G: () => (/* binding */ getBlockNumber)
+});
+
+// UNUSED EXPORTS: getBlockNumberCache
+
+;// CONCATENATED MODULE: ./node_modules/viem/_esm/utils/promise/withCache.js
+const promiseCache = /*#__PURE__*/ new Map();
+const responseCache = /*#__PURE__*/ new Map();
+function withCache_getCache(cacheKey) {
+    const buildCache = (cacheKey, cache) => ({
+        clear: () => cache.delete(cacheKey),
+        get: () => cache.get(cacheKey),
+        set: (data) => cache.set(cacheKey, data),
+    });
+    const promise = buildCache(cacheKey, promiseCache);
+    const response = buildCache(cacheKey, responseCache);
+    return {
+        clear: () => {
+            promise.clear();
+            response.clear();
+        },
+        promise,
+        response,
+    };
+}
+/**
+ * @description Returns the result of a given promise, and caches the result for
+ * subsequent invocations against a provided cache key.
+ */
+async function withCache(fn, { cacheKey, cacheTime = Infinity }) {
+    const cache = withCache_getCache(cacheKey);
+    // If a response exists in the cache, and it's not expired, return it
+    // and do not invoke the promise.
+    // If the max age is 0, the cache is disabled.
+    const response = cache.response.get();
+    if (response && cacheTime > 0) {
+        const age = new Date().getTime() - response.created.getTime();
+        if (age < cacheTime)
+            return response.data;
+    }
+    let promise = cache.promise.get();
+    if (!promise) {
+        promise = fn();
+        // Store the promise in the cache so that subsequent invocations
+        // will wait for the same promise to resolve (deduping).
+        cache.promise.set(promise);
+    }
+    try {
+        const data = await promise;
+        // Store the response in the cache so that subsequent invocations
+        // will return the same response.
+        cache.response.set({ created: new Date(), data });
+        return data;
+    }
+    finally {
+        // Clear the promise cache so that subsequent invocations will
+        // invoke the promise again.
+        cache.promise.clear();
+    }
+}
+//# sourceMappingURL=withCache.js.map
+;// CONCATENATED MODULE: ./node_modules/viem/_esm/actions/public/getBlockNumber.js
+
+const cacheKey = (id) => `blockNumber.${id}`;
+function getBlockNumberCache(id) {
+    return getCache(cacheKey(id));
+}
+/**
+ * Returns the number of the most recent block seen.
+ *
+ * - Docs: https://viem.sh/docs/actions/public/getBlockNumber
+ * - Examples: https://stackblitz.com/github/wevm/viem/tree/main/examples/blocks/fetching-blocks
+ * - JSON-RPC Methods: [`eth_blockNumber`](https://ethereum.org/en/developers/docs/apis/json-rpc/#eth_blocknumber)
+ *
+ * @param client - Client to use
+ * @param parameters - {@link GetBlockNumberParameters}
+ * @returns The number of the block. {@link GetBlockNumberReturnType}
+ *
+ * @example
+ * import { createPublicClient, http } from 'viem'
+ * import { mainnet } from 'viem/chains'
+ * import { getBlockNumber } from 'viem/public'
+ *
+ * const client = createPublicClient({
+ *   chain: mainnet,
+ *   transport: http(),
+ * })
+ * const blockNumber = await getBlockNumber(client)
+ * // 69420n
+ */
+async function getBlockNumber(client, { cacheTime = client.cacheTime } = {}) {
+    const blockNumberHex = await withCache(() => client.request({
+        method: 'eth_blockNumber',
+    }), { cacheKey: cacheKey(client.uid), cacheTime });
+    return BigInt(blockNumberHex);
+}
+//# sourceMappingURL=getBlockNumber.js.map
+
+/***/ }),
+
 /***/ 9798:
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
@@ -1813,6 +2296,181 @@ async function getChainId(client) {
 
 /***/ }),
 
+/***/ 1443:
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   u: () => (/* binding */ getContractEvents)
+/* harmony export */ });
+/* harmony import */ var _utils_abi_getAbiItem_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(4586);
+/* harmony import */ var _utils_getAction_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(3692);
+/* harmony import */ var _getLogs_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(3295);
+
+
+
+/**
+ * Returns a list of event logs emitted by a contract.
+ *
+ * - Docs: https://viem.sh/docs/actions/public/getContractEvents
+ * - JSON-RPC Methods: [`eth_getLogs`](https://ethereum.org/en/developers/docs/apis/json-rpc/#eth_getlogs)
+ *
+ * @param client - Client to use
+ * @param parameters - {@link GetContractEventsParameters}
+ * @returns A list of event logs. {@link GetContractEventsReturnType}
+ *
+ * @example
+ * import { createClient, http } from 'viem'
+ * import { mainnet } from 'viem/chains'
+ * import { getContractEvents } from 'viem/public'
+ * import { wagmiAbi } from './abi'
+ *
+ * const client = createClient({
+ *   chain: mainnet,
+ *   transport: http(),
+ * })
+ * const logs = await getContractEvents(client, {
+ *  address: '0xFBA3912Ca04dd458c843e2EE08967fC04f3579c2',
+ *  abi: wagmiAbi,
+ *  eventName: 'Transfer'
+ * })
+ */
+async function getContractEvents(client, parameters) {
+    const { abi, address, args, blockHash, eventName, fromBlock, toBlock, strict, } = parameters;
+    const event = eventName
+        ? (0,_utils_abi_getAbiItem_js__WEBPACK_IMPORTED_MODULE_0__/* .getAbiItem */ .iY)({ abi, name: eventName })
+        : undefined;
+    const events = !event
+        ? abi.filter((x) => x.type === 'event')
+        : undefined;
+    return (0,_utils_getAction_js__WEBPACK_IMPORTED_MODULE_1__/* .getAction */ .T)(client, _getLogs_js__WEBPACK_IMPORTED_MODULE_2__/* .getLogs */ .a, 'getLogs')({
+        address,
+        args,
+        blockHash,
+        event,
+        events,
+        fromBlock,
+        toBlock,
+        strict,
+    });
+}
+//# sourceMappingURL=getContractEvents.js.map
+
+/***/ }),
+
+/***/ 3373:
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   I: () => (/* binding */ getFilterChanges)
+/* harmony export */ });
+/* harmony import */ var _utils_abi_parseEventLogs_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(8937);
+/* harmony import */ var _utils_formatters_log_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(7070);
+
+
+
+/**
+ * Returns a list of logs or hashes based on a [Filter](/docs/glossary/terms#filter) since the last time it was called.
+ *
+ * - Docs: https://viem.sh/docs/actions/public/getFilterChanges
+ * - JSON-RPC Methods: [`eth_getFilterChanges`](https://ethereum.org/en/developers/docs/apis/json-rpc/#eth_getfilterchanges)
+ *
+ * A Filter can be created from the following actions:
+ *
+ * - [`createBlockFilter`](https://viem.sh/docs/actions/public/createBlockFilter)
+ * - [`createContractEventFilter`](https://viem.sh/docs/contract/createContractEventFilter)
+ * - [`createEventFilter`](https://viem.sh/docs/actions/public/createEventFilter)
+ * - [`createPendingTransactionFilter`](https://viem.sh/docs/actions/public/createPendingTransactionFilter)
+ *
+ * Depending on the type of filter, the return value will be different:
+ *
+ * - If the filter was created with `createContractEventFilter` or `createEventFilter`, it returns a list of logs.
+ * - If the filter was created with `createPendingTransactionFilter`, it returns a list of transaction hashes.
+ * - If the filter was created with `createBlockFilter`, it returns a list of block hashes.
+ *
+ * @param client - Client to use
+ * @param parameters - {@link GetFilterChangesParameters}
+ * @returns Logs or hashes. {@link GetFilterChangesReturnType}
+ *
+ * @example
+ * // Blocks
+ * import { createPublicClient, http } from 'viem'
+ * import { mainnet } from 'viem/chains'
+ * import { createBlockFilter, getFilterChanges } from 'viem/public'
+ *
+ * const client = createPublicClient({
+ *   chain: mainnet,
+ *   transport: http(),
+ * })
+ * const filter = await createBlockFilter(client)
+ * const hashes = await getFilterChanges(client, { filter })
+ *
+ * @example
+ * // Contract Events
+ * import { createPublicClient, http, parseAbi } from 'viem'
+ * import { mainnet } from 'viem/chains'
+ * import { createContractEventFilter, getFilterChanges } from 'viem/public'
+ *
+ * const client = createPublicClient({
+ *   chain: mainnet,
+ *   transport: http(),
+ * })
+ * const filter = await createContractEventFilter(client, {
+ *   address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+ *   abi: parseAbi(['event Transfer(address indexed, address indexed, uint256)']),
+ *   eventName: 'Transfer',
+ * })
+ * const logs = await getFilterChanges(client, { filter })
+ *
+ * @example
+ * // Raw Events
+ * import { createPublicClient, http, parseAbiItem } from 'viem'
+ * import { mainnet } from 'viem/chains'
+ * import { createEventFilter, getFilterChanges } from 'viem/public'
+ *
+ * const client = createPublicClient({
+ *   chain: mainnet,
+ *   transport: http(),
+ * })
+ * const filter = await createEventFilter(client, {
+ *   address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+ *   event: parseAbiItem('event Transfer(address indexed, address indexed, uint256)'),
+ * })
+ * const logs = await getFilterChanges(client, { filter })
+ *
+ * @example
+ * // Transactions
+ * import { createPublicClient, http } from 'viem'
+ * import { mainnet } from 'viem/chains'
+ * import { createPendingTransactionFilter, getFilterChanges } from 'viem/public'
+ *
+ * const client = createPublicClient({
+ *   chain: mainnet,
+ *   transport: http(),
+ * })
+ * const filter = await createPendingTransactionFilter(client)
+ * const hashes = await getFilterChanges(client, { filter })
+ */
+async function getFilterChanges(_client, { filter, }) {
+    const strict = 'strict' in filter && filter.strict;
+    const logs = await filter.request({
+        method: 'eth_getFilterChanges',
+        params: [filter.id],
+    });
+    if (typeof logs[0] === 'string')
+        return logs;
+    const formattedLogs = logs.map((log) => (0,_utils_formatters_log_js__WEBPACK_IMPORTED_MODULE_0__/* .formatLog */ .e)(log));
+    if (!('abi' in filter) || !filter.abi)
+        return formattedLogs;
+    return (0,_utils_abi_parseEventLogs_js__WEBPACK_IMPORTED_MODULE_1__/* .parseEventLogs */ .p)({
+        abi: filter.abi,
+        logs: formattedLogs,
+        strict,
+    });
+}
+//# sourceMappingURL=getFilterChanges.js.map
+
+/***/ }),
+
 /***/ 5242:
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
@@ -1846,6 +2504,91 @@ async function getGasPrice(client) {
     return BigInt(gasPrice);
 }
 //# sourceMappingURL=getGasPrice.js.map
+
+/***/ }),
+
+/***/ 3295:
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   a: () => (/* binding */ getLogs)
+/* harmony export */ });
+/* harmony import */ var _utils_abi_encodeEventTopics_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(5226);
+/* harmony import */ var _utils_abi_parseEventLogs_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(8937);
+/* harmony import */ var _utils_encoding_toHex_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(4192);
+/* harmony import */ var _utils_formatters_log_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(7070);
+
+
+
+
+
+/**
+ * Returns a list of event logs matching the provided parameters.
+ *
+ * - Docs: https://viem.sh/docs/actions/public/getLogs
+ * - Examples: https://stackblitz.com/github/wevm/viem/tree/main/examples/filters-and-logs/event-logs
+ * - JSON-RPC Methods: [`eth_getLogs`](https://ethereum.org/en/developers/docs/apis/json-rpc/#eth_getlogs)
+ *
+ * @param client - Client to use
+ * @param parameters - {@link GetLogsParameters}
+ * @returns A list of event logs. {@link GetLogsReturnType}
+ *
+ * @example
+ * import { createPublicClient, http, parseAbiItem } from 'viem'
+ * import { mainnet } from 'viem/chains'
+ * import { getLogs } from 'viem/public'
+ *
+ * const client = createPublicClient({
+ *   chain: mainnet,
+ *   transport: http(),
+ * })
+ * const logs = await getLogs(client)
+ */
+async function getLogs(client, { address, blockHash, fromBlock, toBlock, event, events: events_, args, strict: strict_, } = {}) {
+    const strict = strict_ ?? false;
+    const events = events_ ?? (event ? [event] : undefined);
+    let topics = [];
+    if (events) {
+        topics = [
+            events.flatMap((event) => (0,_utils_abi_encodeEventTopics_js__WEBPACK_IMPORTED_MODULE_0__/* .encodeEventTopics */ .R)({
+                abi: [event],
+                eventName: event.name,
+                args,
+            })),
+        ];
+        if (event)
+            topics = topics[0];
+    }
+    let logs;
+    if (blockHash) {
+        logs = await client.request({
+            method: 'eth_getLogs',
+            params: [{ address, topics, blockHash }],
+        });
+    }
+    else {
+        logs = await client.request({
+            method: 'eth_getLogs',
+            params: [
+                {
+                    address,
+                    topics,
+                    fromBlock: typeof fromBlock === 'bigint' ? (0,_utils_encoding_toHex_js__WEBPACK_IMPORTED_MODULE_1__/* .numberToHex */ .cK)(fromBlock) : fromBlock,
+                    toBlock: typeof toBlock === 'bigint' ? (0,_utils_encoding_toHex_js__WEBPACK_IMPORTED_MODULE_1__/* .numberToHex */ .cK)(toBlock) : toBlock,
+                },
+            ],
+        });
+    }
+    const formattedLogs = logs.map((log) => (0,_utils_formatters_log_js__WEBPACK_IMPORTED_MODULE_2__/* .formatLog */ .e)(log));
+    if (!events)
+        return formattedLogs;
+    return (0,_utils_abi_parseEventLogs_js__WEBPACK_IMPORTED_MODULE_3__/* .parseEventLogs */ .p)({
+        abi: events,
+        logs: formattedLogs,
+        strict,
+    });
+}
+//# sourceMappingURL=getLogs.js.map
 
 /***/ }),
 
@@ -1890,6 +2633,468 @@ async function getTransactionCount(client, { address, blockTag = 'latest', block
     return (0,_utils_encoding_fromHex_js__WEBPACK_IMPORTED_MODULE_1__/* .hexToNumber */ .ME)(count);
 }
 //# sourceMappingURL=getTransactionCount.js.map
+
+/***/ }),
+
+/***/ 6724:
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   J: () => (/* binding */ readContract)
+/* harmony export */ });
+/* harmony import */ var _utils_abi_decodeFunctionResult_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(6652);
+/* harmony import */ var _utils_abi_encodeFunctionData_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(8503);
+/* harmony import */ var _utils_errors_getContractError_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(2350);
+/* harmony import */ var _utils_getAction_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(3692);
+/* harmony import */ var _call_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(6782);
+
+
+
+
+
+/**
+ * Calls a read-only function on a contract, and returns the response.
+ *
+ * - Docs: https://viem.sh/docs/contract/readContract
+ * - Examples: https://stackblitz.com/github/wevm/viem/tree/main/examples/contracts/reading-contracts
+ *
+ * A "read-only" function (constant function) on a Solidity contract is denoted by a `view` or `pure` keyword. They can only read the state of the contract, and cannot make any changes to it. Since read-only methods do not change the state of the contract, they do not require any gas to be executed, and can be called by any user without the need to pay for gas.
+ *
+ * Internally, uses a [Public Client](https://viem.sh/docs/clients/public) to call the [`call` action](https://viem.sh/docs/actions/public/call) with [ABI-encoded `data`](https://viem.sh/docs/contract/encodeFunctionData).
+ *
+ * @param client - Client to use
+ * @param parameters - {@link ReadContractParameters}
+ * @returns The response from the contract. Type is inferred. {@link ReadContractReturnType}
+ *
+ * @example
+ * import { createPublicClient, http, parseAbi } from 'viem'
+ * import { mainnet } from 'viem/chains'
+ * import { readContract } from 'viem/contract'
+ *
+ * const client = createPublicClient({
+ *   chain: mainnet,
+ *   transport: http(),
+ * })
+ * const result = await readContract(client, {
+ *   address: '0xFBA3912Ca04dd458c843e2EE08967fC04f3579c2',
+ *   abi: parseAbi(['function balanceOf(address) view returns (uint256)']),
+ *   functionName: 'balanceOf',
+ *   args: ['0xA0Cf798816D4b9b9866b5330EEa46a18382f251e'],
+ * })
+ * // 424122n
+ */
+async function readContract(client, parameters) {
+    const { abi, address, args, functionName, ...rest } = parameters;
+    const calldata = (0,_utils_abi_encodeFunctionData_js__WEBPACK_IMPORTED_MODULE_0__/* .encodeFunctionData */ .p)({
+        abi,
+        args,
+        functionName,
+    });
+    try {
+        const { data } = await (0,_utils_getAction_js__WEBPACK_IMPORTED_MODULE_1__/* .getAction */ .T)(client, _call_js__WEBPACK_IMPORTED_MODULE_2__/* .call */ .T1, 'call')({
+            ...rest,
+            data: calldata,
+            to: address,
+        });
+        return (0,_utils_abi_decodeFunctionResult_js__WEBPACK_IMPORTED_MODULE_3__/* .decodeFunctionResult */ .e)({
+            abi,
+            args,
+            functionName,
+            data: data || '0x',
+        });
+    }
+    catch (error) {
+        throw (0,_utils_errors_getContractError_js__WEBPACK_IMPORTED_MODULE_4__/* .getContractError */ .j)(error, {
+            abi,
+            address,
+            args,
+            docsPath: '/docs/contract/readContract',
+            functionName,
+        });
+    }
+}
+//# sourceMappingURL=readContract.js.map
+
+/***/ }),
+
+/***/ 8318:
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   v: () => (/* binding */ simulateContract)
+/* harmony export */ });
+/* harmony import */ var _accounts_utils_parseAccount_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(3033);
+/* harmony import */ var _utils_abi_decodeFunctionResult_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(6652);
+/* harmony import */ var _utils_abi_encodeFunctionData_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(8503);
+/* harmony import */ var _utils_errors_getContractError_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(2350);
+/* harmony import */ var _utils_getAction_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(3692);
+/* harmony import */ var _call_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(6782);
+
+
+
+
+
+
+/**
+ * Simulates/validates a contract interaction. This is useful for retrieving **return data** and **revert reasons** of contract write functions.
+ *
+ * - Docs: https://viem.sh/docs/contract/simulateContract
+ * - Examples: https://stackblitz.com/github/wevm/viem/tree/main/examples/contracts/writing-to-contracts
+ *
+ * This function does not require gas to execute and _**does not**_ change the state of the blockchain. It is almost identical to [`readContract`](https://viem.sh/docs/contract/readContract), but also supports contract write functions.
+ *
+ * Internally, uses a [Public Client](https://viem.sh/docs/clients/public) to call the [`call` action](https://viem.sh/docs/actions/public/call) with [ABI-encoded `data`](https://viem.sh/docs/contract/encodeFunctionData).
+ *
+ * @param client - Client to use
+ * @param parameters - {@link SimulateContractParameters}
+ * @returns The simulation result and write request. {@link SimulateContractReturnType}
+ *
+ * @example
+ * import { createPublicClient, http } from 'viem'
+ * import { mainnet } from 'viem/chains'
+ * import { simulateContract } from 'viem/contract'
+ *
+ * const client = createPublicClient({
+ *   chain: mainnet,
+ *   transport: http(),
+ * })
+ * const result = await simulateContract(client, {
+ *   address: '0xFBA3912Ca04dd458c843e2EE08967fC04f3579c2',
+ *   abi: parseAbi(['function mint(uint32) view returns (uint32)']),
+ *   functionName: 'mint',
+ *   args: ['69420'],
+ *   account: '0xA0Cf798816D4b9b9866b5330EEa46a18382f251e',
+ * })
+ */
+async function simulateContract(client, parameters) {
+    const { abi, address, args, dataSuffix, functionName, ...callRequest } = parameters;
+    const account = callRequest.account
+        ? (0,_accounts_utils_parseAccount_js__WEBPACK_IMPORTED_MODULE_0__/* .parseAccount */ .J)(callRequest.account)
+        : client.account;
+    const calldata = (0,_utils_abi_encodeFunctionData_js__WEBPACK_IMPORTED_MODULE_1__/* .encodeFunctionData */ .p)({ abi, args, functionName });
+    try {
+        const { data } = await (0,_utils_getAction_js__WEBPACK_IMPORTED_MODULE_2__/* .getAction */ .T)(client, _call_js__WEBPACK_IMPORTED_MODULE_3__/* .call */ .T1, 'call')({
+            batch: false,
+            data: `${calldata}${dataSuffix ? dataSuffix.replace('0x', '') : ''}`,
+            to: address,
+            ...callRequest,
+            account,
+        });
+        const result = (0,_utils_abi_decodeFunctionResult_js__WEBPACK_IMPORTED_MODULE_4__/* .decodeFunctionResult */ .e)({
+            abi,
+            args,
+            functionName,
+            data: data || '0x',
+        });
+        const minimizedAbi = abi.filter((abiItem) => 'name' in abiItem && abiItem.name === parameters.functionName);
+        return {
+            result,
+            request: {
+                abi: minimizedAbi,
+                address,
+                args,
+                dataSuffix,
+                functionName,
+                ...callRequest,
+                account,
+            },
+        };
+    }
+    catch (error) {
+        throw (0,_utils_errors_getContractError_js__WEBPACK_IMPORTED_MODULE_5__/* .getContractError */ .j)(error, {
+            abi,
+            address,
+            args,
+            docsPath: '/docs/contract/simulateContract',
+            functionName,
+            sender: account?.address,
+        });
+    }
+}
+//# sourceMappingURL=simulateContract.js.map
+
+/***/ }),
+
+/***/ 5980:
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   Z: () => (/* binding */ uninstallFilter)
+/* harmony export */ });
+/**
+ * Destroys a [`Filter`](https://viem.sh/docs/glossary/types#filter).
+ *
+ * - Docs: https://viem.sh/docs/actions/public/uninstallFilter
+ * - JSON-RPC Methods: [`eth_uninstallFilter`](https://ethereum.org/en/developers/docs/apis/json-rpc/#eth_uninstallFilter)
+ *
+ * Destroys a Filter that was created from one of the following Actions:
+ * - [`createBlockFilter`](https://viem.sh/docs/actions/public/createBlockFilter)
+ * - [`createEventFilter`](https://viem.sh/docs/actions/public/createEventFilter)
+ * - [`createPendingTransactionFilter`](https://viem.sh/docs/actions/public/createPendingTransactionFilter)
+ *
+ * @param client - Client to use
+ * @param parameters - {@link UninstallFilterParameters}
+ * @returns A boolean indicating if the Filter was successfully uninstalled. {@link UninstallFilterReturnType}
+ *
+ * @example
+ * import { createPublicClient, http } from 'viem'
+ * import { mainnet } from 'viem/chains'
+ * import { createPendingTransactionFilter, uninstallFilter } from 'viem/public'
+ *
+ * const filter = await createPendingTransactionFilter(client)
+ * const uninstalled = await uninstallFilter(client, { filter })
+ * // true
+ */
+async function uninstallFilter(_client, { filter }) {
+    return filter.request({
+        method: 'eth_uninstallFilter',
+        params: [filter.id],
+    });
+}
+//# sourceMappingURL=uninstallFilter.js.map
+
+/***/ }),
+
+/***/ 301:
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   q: () => (/* binding */ watchContractEvent)
+/* harmony export */ });
+/* harmony import */ var _errors_abi_js__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(7372);
+/* harmony import */ var _errors_rpc_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(7513);
+/* harmony import */ var _utils_abi_decodeEventLog_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(9483);
+/* harmony import */ var _utils_abi_encodeEventTopics_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(5226);
+/* harmony import */ var _utils_formatters_log_js__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(7070);
+/* harmony import */ var _utils_getAction_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(3692);
+/* harmony import */ var _utils_observe_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(9726);
+/* harmony import */ var _utils_poll_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(5213);
+/* harmony import */ var _utils_stringify_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(8463);
+/* harmony import */ var _createContractEventFilter_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(1100);
+/* harmony import */ var _getBlockNumber_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(5639);
+/* harmony import */ var _getContractEvents_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(1443);
+/* harmony import */ var _getFilterChanges_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(3373);
+/* harmony import */ var _uninstallFilter_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(5980);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/**
+ * Watches and returns emitted contract event logs.
+ *
+ * - Docs: https://viem.sh/docs/contract/watchContractEvent
+ *
+ * This Action will batch up all the event logs found within the [`pollingInterval`](https://viem.sh/docs/contract/watchContractEvent#pollinginterval-optional), and invoke them via [`onLogs`](https://viem.sh/docs/contract/watchContractEvent#onLogs).
+ *
+ * `watchContractEvent` will attempt to create an [Event Filter](https://viem.sh/docs/contract/createContractEventFilter) and listen to changes to the Filter per polling interval, however, if the RPC Provider does not support Filters (e.g. `eth_newFilter`), then `watchContractEvent` will fall back to using [`getLogs`](https://viem.sh/docs/actions/public/getLogs) instead.
+ *
+ * @param client - Client to use
+ * @param parameters - {@link WatchContractEventParameters}
+ * @returns A function that can be invoked to stop watching for new event logs. {@link WatchContractEventReturnType}
+ *
+ * @example
+ * import { createPublicClient, http, parseAbi } from 'viem'
+ * import { mainnet } from 'viem/chains'
+ * import { watchContractEvent } from 'viem/contract'
+ *
+ * const client = createPublicClient({
+ *   chain: mainnet,
+ *   transport: http(),
+ * })
+ * const unwatch = watchContractEvent(client, {
+ *   address: '0xFBA3912Ca04dd458c843e2EE08967fC04f3579c2',
+ *   abi: parseAbi(['event Transfer(address indexed from, address indexed to, uint256 value)']),
+ *   eventName: 'Transfer',
+ *   args: { from: '0xc961145a54C96E3aE9bAA048c4F4D6b04C13916b' },
+ *   onLogs: (logs) => console.log(logs),
+ * })
+ */
+function watchContractEvent(client, parameters) {
+    const { abi, address, args, batch = true, eventName, fromBlock, onError, onLogs, poll: poll_, pollingInterval = client.pollingInterval, strict: strict_, } = parameters;
+    const enablePolling = typeof poll_ !== 'undefined'
+        ? poll_
+        : client.transport.type !== 'webSocket' || typeof fromBlock === 'number';
+    const pollContractEvent = () => {
+        const strict = strict_ ?? false;
+        const observerId = (0,_utils_stringify_js__WEBPACK_IMPORTED_MODULE_0__/* .stringify */ .A)([
+            'watchContractEvent',
+            address,
+            args,
+            batch,
+            client.uid,
+            eventName,
+            pollingInterval,
+            strict,
+            fromBlock,
+        ]);
+        return (0,_utils_observe_js__WEBPACK_IMPORTED_MODULE_1__/* .observe */ .lB)(observerId, { onLogs, onError }, (emit) => {
+            let previousBlockNumber;
+            if (fromBlock !== undefined)
+                previousBlockNumber = fromBlock - 1n;
+            let filter;
+            let initialized = false;
+            const unwatch = (0,_utils_poll_js__WEBPACK_IMPORTED_MODULE_2__/* .poll */ .w)(async () => {
+                if (!initialized) {
+                    try {
+                        filter = (await (0,_utils_getAction_js__WEBPACK_IMPORTED_MODULE_3__/* .getAction */ .T)(client, _createContractEventFilter_js__WEBPACK_IMPORTED_MODULE_4__/* .createContractEventFilter */ .X, 'createContractEventFilter')({
+                            abi,
+                            address,
+                            args: args,
+                            eventName: eventName,
+                            strict: strict,
+                            fromBlock,
+                        }));
+                    }
+                    catch { }
+                    initialized = true;
+                    return;
+                }
+                try {
+                    let logs;
+                    if (filter) {
+                        logs = await (0,_utils_getAction_js__WEBPACK_IMPORTED_MODULE_3__/* .getAction */ .T)(client, _getFilterChanges_js__WEBPACK_IMPORTED_MODULE_5__/* .getFilterChanges */ .I, 'getFilterChanges')({ filter });
+                    }
+                    else {
+                        // If the filter doesn't exist, we will fall back to use `getLogs`.
+                        // The fall back exists because some RPC Providers do not support filters.
+                        // Fetch the block number to use for `getLogs`.
+                        const blockNumber = await (0,_utils_getAction_js__WEBPACK_IMPORTED_MODULE_3__/* .getAction */ .T)(client, _getBlockNumber_js__WEBPACK_IMPORTED_MODULE_6__/* .getBlockNumber */ .G, 'getBlockNumber')({});
+                        // If the block number has changed, we will need to fetch the logs.
+                        // If the block number doesn't exist, we are yet to reach the first poll interval,
+                        // so do not emit any logs.
+                        if (previousBlockNumber && previousBlockNumber !== blockNumber) {
+                            logs = await (0,_utils_getAction_js__WEBPACK_IMPORTED_MODULE_3__/* .getAction */ .T)(client, _getContractEvents_js__WEBPACK_IMPORTED_MODULE_7__/* .getContractEvents */ .u, 'getContractEvents')({
+                                abi,
+                                address,
+                                args,
+                                eventName,
+                                fromBlock: previousBlockNumber + 1n,
+                                toBlock: blockNumber,
+                                strict,
+                            });
+                        }
+                        else {
+                            logs = [];
+                        }
+                        previousBlockNumber = blockNumber;
+                    }
+                    if (logs.length === 0)
+                        return;
+                    if (batch)
+                        emit.onLogs(logs);
+                    else
+                        for (const log of logs)
+                            emit.onLogs([log]);
+                }
+                catch (err) {
+                    // If a filter has been set and gets uninstalled, providers will throw an InvalidInput error.
+                    // Reinitalize the filter when this occurs
+                    if (filter && err instanceof _errors_rpc_js__WEBPACK_IMPORTED_MODULE_8__/* .InvalidInputRpcError */ .Di)
+                        initialized = false;
+                    emit.onError?.(err);
+                }
+            }, {
+                emitOnBegin: true,
+                interval: pollingInterval,
+            });
+            return async () => {
+                if (filter)
+                    await (0,_utils_getAction_js__WEBPACK_IMPORTED_MODULE_3__/* .getAction */ .T)(client, _uninstallFilter_js__WEBPACK_IMPORTED_MODULE_9__/* .uninstallFilter */ .Z, 'uninstallFilter')({ filter });
+                unwatch();
+            };
+        });
+    };
+    const subscribeContractEvent = () => {
+        const strict = strict_ ?? false;
+        const observerId = (0,_utils_stringify_js__WEBPACK_IMPORTED_MODULE_0__/* .stringify */ .A)([
+            'watchContractEvent',
+            address,
+            args,
+            batch,
+            client.uid,
+            eventName,
+            pollingInterval,
+            strict,
+        ]);
+        let active = true;
+        let unsubscribe = () => (active = false);
+        return (0,_utils_observe_js__WEBPACK_IMPORTED_MODULE_1__/* .observe */ .lB)(observerId, { onLogs, onError }, (emit) => {
+            ;
+            (async () => {
+                try {
+                    const topics = eventName
+                        ? (0,_utils_abi_encodeEventTopics_js__WEBPACK_IMPORTED_MODULE_10__/* .encodeEventTopics */ .R)({
+                            abi: abi,
+                            eventName: eventName,
+                            args,
+                        })
+                        : [];
+                    const { unsubscribe: unsubscribe_ } = await client.transport.subscribe({
+                        params: ['logs', { address, topics }],
+                        onData(data) {
+                            if (!active)
+                                return;
+                            const log = data.result;
+                            try {
+                                const { eventName, args } = (0,_utils_abi_decodeEventLog_js__WEBPACK_IMPORTED_MODULE_11__/* .decodeEventLog */ .j)({
+                                    abi: abi,
+                                    data: log.data,
+                                    topics: log.topics,
+                                    strict: strict_,
+                                });
+                                const formatted = (0,_utils_formatters_log_js__WEBPACK_IMPORTED_MODULE_12__/* .formatLog */ .e)(log, {
+                                    args,
+                                    eventName: eventName,
+                                });
+                                emit.onLogs([formatted]);
+                            }
+                            catch (err) {
+                                let eventName;
+                                let isUnnamed;
+                                if (err instanceof _errors_abi_js__WEBPACK_IMPORTED_MODULE_13__/* .DecodeLogDataMismatch */ .fo ||
+                                    err instanceof _errors_abi_js__WEBPACK_IMPORTED_MODULE_13__/* .DecodeLogTopicsMismatch */ .l3) {
+                                    // If strict mode is on, and log data/topics do not match event definition, skip.
+                                    if (strict_)
+                                        return;
+                                    eventName = err.abiItem.name;
+                                    isUnnamed = err.abiItem.inputs?.some((x) => !('name' in x && x.name));
+                                }
+                                // Set args to empty if there is an error decoding (e.g. indexed/non-indexed params mismatch).
+                                const formatted = (0,_utils_formatters_log_js__WEBPACK_IMPORTED_MODULE_12__/* .formatLog */ .e)(log, {
+                                    args: isUnnamed ? [] : {},
+                                    eventName,
+                                });
+                                emit.onLogs([formatted]);
+                            }
+                        },
+                        onError(error) {
+                            emit.onError?.(error);
+                        },
+                    });
+                    unsubscribe = unsubscribe_;
+                    if (!active)
+                        unsubscribe();
+                }
+                catch (err) {
+                    onError?.(err);
+                }
+            })();
+            return () => unsubscribe();
+        });
+    };
+    return enablePolling ? pollContractEvent() : subscribeContractEvent();
+}
+//# sourceMappingURL=watchContractEvent.js.map
 
 /***/ }),
 
@@ -2747,6 +3952,274 @@ async function sendRawTransaction(client, { serializedTransaction }) {
 
 /***/ }),
 
+/***/ 6479:
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+
+// EXPORTS
+__webpack_require__.d(__webpack_exports__, {
+  v: () => (/* binding */ sendTransaction)
+});
+
+// EXTERNAL MODULE: ./node_modules/viem/_esm/accounts/utils/parseAccount.js
+var parseAccount = __webpack_require__(3033);
+// EXTERNAL MODULE: ./node_modules/viem/_esm/errors/account.js
+var errors_account = __webpack_require__(4337);
+// EXTERNAL MODULE: ./node_modules/viem/_esm/utils/chain/assertCurrentChain.js
+var assertCurrentChain = __webpack_require__(3190);
+// EXTERNAL MODULE: ./node_modules/viem/_esm/errors/node.js
+var node = __webpack_require__(2592);
+// EXTERNAL MODULE: ./node_modules/viem/_esm/errors/transaction.js
+var transaction = __webpack_require__(8990);
+// EXTERNAL MODULE: ./node_modules/viem/_esm/utils/errors/getNodeError.js
+var getNodeError = __webpack_require__(1772);
+;// CONCATENATED MODULE: ./node_modules/viem/_esm/utils/errors/getTransactionError.js
+
+
+
+function getTransactionError(err, { docsPath, ...args }) {
+    const cause = (() => {
+        const cause = (0,getNodeError/* getNodeError */.l)(err, args);
+        if (cause instanceof node/* UnknownNodeError */.RM)
+            return err;
+        return cause;
+    })();
+    return new transaction/* TransactionExecutionError */.$s(cause, {
+        docsPath,
+        ...args,
+    });
+}
+//# sourceMappingURL=getTransactionError.js.map
+// EXTERNAL MODULE: ./node_modules/viem/_esm/utils/formatters/extract.js
+var extract = __webpack_require__(9789);
+// EXTERNAL MODULE: ./node_modules/viem/_esm/utils/formatters/transactionRequest.js
+var transactionRequest = __webpack_require__(7671);
+// EXTERNAL MODULE: ./node_modules/viem/_esm/utils/getAction.js
+var getAction = __webpack_require__(3692);
+// EXTERNAL MODULE: ./node_modules/viem/_esm/utils/transaction/assertRequest.js
+var assertRequest = __webpack_require__(5414);
+// EXTERNAL MODULE: ./node_modules/viem/_esm/actions/public/getChainId.js
+var getChainId = __webpack_require__(9798);
+// EXTERNAL MODULE: ./node_modules/viem/_esm/actions/wallet/prepareTransactionRequest.js + 13 modules
+var prepareTransactionRequest = __webpack_require__(1093);
+// EXTERNAL MODULE: ./node_modules/viem/_esm/actions/wallet/sendRawTransaction.js
+var sendRawTransaction = __webpack_require__(8498);
+;// CONCATENATED MODULE: ./node_modules/viem/_esm/actions/wallet/sendTransaction.js
+
+
+
+
+
+
+
+
+
+
+
+/**
+ * Creates, signs, and sends a new transaction to the network.
+ *
+ * - Docs: https://viem.sh/docs/actions/wallet/sendTransaction
+ * - Examples: https://stackblitz.com/github/wevm/viem/tree/main/examples/transactions/sending-transactions
+ * - JSON-RPC Methods:
+ *   - JSON-RPC Accounts: [`eth_sendTransaction`](https://ethereum.org/en/developers/docs/apis/json-rpc/#eth_sendtransaction)
+ *   - Local Accounts: [`eth_sendRawTransaction`](https://ethereum.org/en/developers/docs/apis/json-rpc/#eth_sendrawtransaction)
+ *
+ * @param client - Client to use
+ * @param parameters - {@link SendTransactionParameters}
+ * @returns The [Transaction](https://viem.sh/docs/glossary/terms#transaction) hash. {@link SendTransactionReturnType}
+ *
+ * @example
+ * import { createWalletClient, custom } from 'viem'
+ * import { mainnet } from 'viem/chains'
+ * import { sendTransaction } from 'viem/wallet'
+ *
+ * const client = createWalletClient({
+ *   chain: mainnet,
+ *   transport: custom(window.ethereum),
+ * })
+ * const hash = await sendTransaction(client, {
+ *   account: '0xA0Cf798816D4b9b9866b5330EEa46a18382f251e',
+ *   to: '0x70997970c51812dc3a010c7d01b50e0d17dc79c8',
+ *   value: 1000000000000000000n,
+ * })
+ *
+ * @example
+ * // Account Hoisting
+ * import { createWalletClient, http } from 'viem'
+ * import { privateKeyToAccount } from 'viem/accounts'
+ * import { mainnet } from 'viem/chains'
+ * import { sendTransaction } from 'viem/wallet'
+ *
+ * const client = createWalletClient({
+ *   account: privateKeyToAccount('0x…'),
+ *   chain: mainnet,
+ *   transport: http(),
+ * })
+ * const hash = await sendTransaction(client, {
+ *   to: '0x70997970c51812dc3a010c7d01b50e0d17dc79c8',
+ *   value: 1000000000000000000n,
+ * })
+ */
+async function sendTransaction(client, parameters) {
+    const { account: account_ = client.account, chain = client.chain, accessList, blobs, data, gas, gasPrice, maxFeePerBlobGas, maxFeePerGas, maxPriorityFeePerGas, nonce, to, value, ...rest } = parameters;
+    if (!account_)
+        throw new errors_account/* AccountNotFoundError */.T({
+            docsPath: '/docs/actions/wallet/sendTransaction',
+        });
+    const account = (0,parseAccount/* parseAccount */.J)(account_);
+    try {
+        (0,assertRequest/* assertRequest */.c)(parameters);
+        let chainId;
+        if (chain !== null) {
+            chainId = await (0,getAction/* getAction */.T)(client, getChainId/* getChainId */.T, 'getChainId')({});
+            (0,assertCurrentChain/* assertCurrentChain */.v)({
+                currentChainId: chainId,
+                chain,
+            });
+        }
+        if (account.type === 'local') {
+            // Prepare the request for signing (assign appropriate fees, etc.)
+            const request = await (0,getAction/* getAction */.T)(client, prepareTransactionRequest/* prepareTransactionRequest */.f, 'prepareTransactionRequest')({
+                account,
+                accessList,
+                blobs,
+                chain,
+                chainId,
+                data,
+                gas,
+                gasPrice,
+                maxFeePerBlobGas,
+                maxFeePerGas,
+                maxPriorityFeePerGas,
+                nonce,
+                parameters: [...prepareTransactionRequest/* defaultParameters */.M, 'sidecars'],
+                to,
+                value,
+                ...rest,
+            });
+            const serializer = chain?.serializers?.transaction;
+            const serializedTransaction = (await account.signTransaction(request, {
+                serializer,
+            }));
+            return await (0,getAction/* getAction */.T)(client, sendRawTransaction/* sendRawTransaction */.L, 'sendRawTransaction')({
+                serializedTransaction,
+            });
+        }
+        const chainFormat = client.chain?.formatters?.transactionRequest?.format;
+        const format = chainFormat || transactionRequest/* formatTransactionRequest */.Bv;
+        const request = format({
+            // Pick out extra data that might exist on the chain's transaction request type.
+            ...(0,extract/* extract */.o)(rest, { format: chainFormat }),
+            accessList,
+            blobs,
+            data,
+            from: account.address,
+            gas,
+            gasPrice,
+            maxFeePerBlobGas,
+            maxFeePerGas,
+            maxPriorityFeePerGas,
+            nonce,
+            to,
+            value,
+        });
+        return await client.request({
+            method: 'eth_sendTransaction',
+            params: [request],
+        }, { retryCount: 0 });
+    }
+    catch (err) {
+        throw getTransactionError(err, {
+            ...parameters,
+            account,
+            chain: parameters.chain || undefined,
+        });
+    }
+}
+//# sourceMappingURL=sendTransaction.js.map
+
+/***/ }),
+
+/***/ 9177:
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   E: () => (/* binding */ writeContract)
+/* harmony export */ });
+/* harmony import */ var _utils_abi_encodeFunctionData_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(8503);
+/* harmony import */ var _utils_getAction_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(3692);
+/* harmony import */ var _sendTransaction_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(6479);
+
+
+
+/**
+ * Executes a write function on a contract.
+ *
+ * - Docs: https://viem.sh/docs/contract/writeContract
+ * - Examples: https://stackblitz.com/github/wevm/viem/tree/main/examples/contracts/writing-to-contracts
+ *
+ * A "write" function on a Solidity contract modifies the state of the blockchain. These types of functions require gas to be executed, and hence a [Transaction](https://viem.sh/docs/glossary/terms) is needed to be broadcast in order to change the state.
+ *
+ * Internally, uses a [Wallet Client](https://viem.sh/docs/clients/wallet) to call the [`sendTransaction` action](https://viem.sh/docs/actions/wallet/sendTransaction) with [ABI-encoded `data`](https://viem.sh/docs/contract/encodeFunctionData).
+ *
+ * __Warning: The `write` internally sends a transaction – it does not validate if the contract write will succeed (the contract may throw an error). It is highly recommended to [simulate the contract write with `contract.simulate`](https://viem.sh/docs/contract/writeContract#usage) before you execute it.__
+ *
+ * @param client - Client to use
+ * @param parameters - {@link WriteContractParameters}
+ * @returns A [Transaction Hash](https://viem.sh/docs/glossary/terms#hash). {@link WriteContractReturnType}
+ *
+ * @example
+ * import { createWalletClient, custom, parseAbi } from 'viem'
+ * import { mainnet } from 'viem/chains'
+ * import { writeContract } from 'viem/contract'
+ *
+ * const client = createWalletClient({
+ *   chain: mainnet,
+ *   transport: custom(window.ethereum),
+ * })
+ * const hash = await writeContract(client, {
+ *   address: '0xFBA3912Ca04dd458c843e2EE08967fC04f3579c2',
+ *   abi: parseAbi(['function mint(uint32 tokenId) nonpayable']),
+ *   functionName: 'mint',
+ *   args: [69420],
+ * })
+ *
+ * @example
+ * // With Validation
+ * import { createWalletClient, http, parseAbi } from 'viem'
+ * import { mainnet } from 'viem/chains'
+ * import { simulateContract, writeContract } from 'viem/contract'
+ *
+ * const client = createWalletClient({
+ *   chain: mainnet,
+ *   transport: http(),
+ * })
+ * const { request } = await simulateContract(client, {
+ *   address: '0xFBA3912Ca04dd458c843e2EE08967fC04f3579c2',
+ *   abi: parseAbi(['function mint(uint32 tokenId) nonpayable']),
+ *   functionName: 'mint',
+ *   args: [69420],
+ * }
+ * const hash = await writeContract(client, request)
+ */
+async function writeContract(client, parameters) {
+    const { abi, address, args, dataSuffix, functionName, ...request } = parameters;
+    const data = (0,_utils_abi_encodeFunctionData_js__WEBPACK_IMPORTED_MODULE_0__/* .encodeFunctionData */ .p)({
+        abi,
+        args,
+        functionName,
+    });
+    return (0,_utils_getAction_js__WEBPACK_IMPORTED_MODULE_1__/* .getAction */ .T)(client, _sendTransaction_js__WEBPACK_IMPORTED_MODULE_2__/* .sendTransaction */ .v, 'sendTransaction')({
+        data: `${data}${dataSuffix ? dataSuffix.replace('0x', '') : ''}`,
+        to: address,
+        ...request,
+    });
+}
+//# sourceMappingURL=writeContract.js.map
+
+/***/ }),
+
 /***/ 2403:
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
@@ -2870,7 +4343,7 @@ function createClient(parameters) {
 
 /***/ }),
 
-/***/ 2381:
+/***/ 6166:
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 
@@ -3045,116 +4518,8 @@ function packetToBytes(packet) {
 //# sourceMappingURL=packetToBytes.js.map
 // EXTERNAL MODULE: ./node_modules/viem/_esm/utils/getAction.js
 var getAction = __webpack_require__(3692);
-// EXTERNAL MODULE: ./node_modules/viem/_esm/errors/abi.js
-var errors_abi = __webpack_require__(7372);
-// EXTERNAL MODULE: ./node_modules/viem/_esm/errors/rpc.js
-var rpc = __webpack_require__(7513);
-;// CONCATENATED MODULE: ./node_modules/viem/_esm/utils/errors/getContractError.js
-
-
-
-
-const EXECUTION_REVERTED_ERROR_CODE = 3;
-function getContractError(err, { abi, address, args, docsPath, functionName, sender, }) {
-    const { code, data, message, shortMessage } = (err instanceof contract/* RawContractError */.$S
-        ? err
-        : err instanceof base/* BaseError */.C
-            ? err.walk((err) => 'data' in err) || err.walk()
-            : {});
-    const cause = (() => {
-        if (err instanceof errors_abi/* AbiDecodingZeroDataError */.O)
-            return new contract/* ContractFunctionZeroDataError */.rR({ functionName });
-        if ([EXECUTION_REVERTED_ERROR_CODE, rpc/* InternalRpcError */.bq.code].includes(code) &&
-            (data || message || shortMessage)) {
-            return new contract/* ContractFunctionRevertedError */.M({
-                abi,
-                data: typeof data === 'object' ? data.data : data,
-                functionName,
-                message: shortMessage ?? message,
-            });
-        }
-        return err;
-    })();
-    return new contract/* ContractFunctionExecutionError */.bG(cause, {
-        abi,
-        args,
-        contractAddress: address,
-        docsPath,
-        functionName,
-        sender,
-    });
-}
-//# sourceMappingURL=getContractError.js.map
-// EXTERNAL MODULE: ./node_modules/viem/_esm/actions/public/call.js + 2 modules
-var call = __webpack_require__(6782);
-;// CONCATENATED MODULE: ./node_modules/viem/_esm/actions/public/readContract.js
-
-
-
-
-
-/**
- * Calls a read-only function on a contract, and returns the response.
- *
- * - Docs: https://viem.sh/docs/contract/readContract
- * - Examples: https://stackblitz.com/github/wevm/viem/tree/main/examples/contracts/reading-contracts
- *
- * A "read-only" function (constant function) on a Solidity contract is denoted by a `view` or `pure` keyword. They can only read the state of the contract, and cannot make any changes to it. Since read-only methods do not change the state of the contract, they do not require any gas to be executed, and can be called by any user without the need to pay for gas.
- *
- * Internally, uses a [Public Client](https://viem.sh/docs/clients/public) to call the [`call` action](https://viem.sh/docs/actions/public/call) with [ABI-encoded `data`](https://viem.sh/docs/contract/encodeFunctionData).
- *
- * @param client - Client to use
- * @param parameters - {@link ReadContractParameters}
- * @returns The response from the contract. Type is inferred. {@link ReadContractReturnType}
- *
- * @example
- * import { createPublicClient, http, parseAbi } from 'viem'
- * import { mainnet } from 'viem/chains'
- * import { readContract } from 'viem/contract'
- *
- * const client = createPublicClient({
- *   chain: mainnet,
- *   transport: http(),
- * })
- * const result = await readContract(client, {
- *   address: '0xFBA3912Ca04dd458c843e2EE08967fC04f3579c2',
- *   abi: parseAbi(['function balanceOf(address) view returns (uint256)']),
- *   functionName: 'balanceOf',
- *   args: ['0xA0Cf798816D4b9b9866b5330EEa46a18382f251e'],
- * })
- * // 424122n
- */
-async function readContract(client, parameters) {
-    const { abi, address, args, functionName, ...rest } = parameters;
-    const calldata = (0,encodeFunctionData/* encodeFunctionData */.p)({
-        abi,
-        args,
-        functionName,
-    });
-    try {
-        const { data } = await (0,getAction/* getAction */.T)(client, call/* call */.T1, 'call')({
-            ...rest,
-            data: calldata,
-            to: address,
-        });
-        return (0,decodeFunctionResult/* decodeFunctionResult */.e)({
-            abi,
-            args,
-            functionName,
-            data: data || '0x',
-        });
-    }
-    catch (error) {
-        throw getContractError(error, {
-            abi,
-            address,
-            args,
-            docsPath: '/docs/contract/readContract',
-            functionName,
-        });
-    }
-}
-//# sourceMappingURL=readContract.js.map
+// EXTERNAL MODULE: ./node_modules/viem/_esm/actions/public/readContract.js
+var readContract = __webpack_require__(6724);
 ;// CONCATENATED MODULE: ./node_modules/viem/_esm/actions/ens/getEnsAddress.js
 
 
@@ -3222,7 +4587,7 @@ async function getEnsAddress(client, { blockNumber, blockTag, coinType, name, ga
             blockNumber,
             blockTag,
         };
-        const readContractAction = (0,getAction/* getAction */.T)(client, readContract, 'readContract');
+        const readContractAction = (0,getAction/* getAction */.T)(client, readContract/* readContract */.J, 'readContract');
         const res = gatewayUrls
             ? await readContractAction({
                 ...readContractParameters,
@@ -3458,7 +4823,7 @@ function parseNftUri(uri_) {
 }
 async function getNftTokenUri(client, { nft }) {
     if (nft.namespace === 'erc721') {
-        return readContract(client, {
+        return (0,readContract/* readContract */.J)(client, {
             address: nft.contractAddress,
             abi: [
                 {
@@ -3474,7 +4839,7 @@ async function getNftTokenUri(client, { nft }) {
         });
     }
     if (nft.namespace === 'erc1155') {
-        return readContract(client, {
+        return (0,readContract/* readContract */.J)(client, {
             address: nft.contractAddress,
             abi: [
                 {
@@ -3594,7 +4959,7 @@ async function getEnsText(client, { blockNumber, blockTag, name, key, gatewayUrl
             blockNumber,
             blockTag,
         };
-        const readContractAction = (0,getAction/* getAction */.T)(client, readContract, 'readContract');
+        const readContractAction = (0,getAction/* getAction */.T)(client, readContract/* readContract */.J, 'readContract');
         const res = gatewayUrls
             ? await readContractAction({
                 ...readContractParameters,
@@ -3729,7 +5094,7 @@ async function getEnsName(client, { address, blockNumber, blockTag, gatewayUrls,
             blockNumber,
             blockTag,
         };
-        const readContractAction = (0,getAction/* getAction */.T)(client, readContract, 'readContract');
+        const readContractAction = (0,getAction/* getAction */.T)(client, readContract/* readContract */.J, 'readContract');
         const [name, resolvedAddress] = gatewayUrls
             ? await readContractAction({
                 ...readContractParameters,
@@ -3794,7 +5159,7 @@ async function getEnsResolver(client, { blockNumber, blockTag, name, universalRe
             contract: 'ensUniversalResolver',
         });
     }
-    const [resolverAddress] = await (0,getAction/* getAction */.T)(client, readContract, 'readContract')({
+    const [resolverAddress] = await (0,getAction/* getAction */.T)(client, readContract/* readContract */.J, 'readContract')({
         address: universalResolverAddress,
         abi: [
             {
@@ -3813,22 +5178,10 @@ async function getEnsResolver(client, { blockNumber, blockTag, name, universalRe
     return resolverAddress;
 }
 //# sourceMappingURL=getEnsResolver.js.map
-;// CONCATENATED MODULE: ./node_modules/viem/_esm/utils/filters/createFilterRequestScope.js
-/**
- * Scopes `request` to the filter ID. If the client is a fallback, it will
- * listen for responses and scope the child transport `request` function
- * to the successful filter ID.
- */
-function createFilterRequestScope(client, { method }) {
-    const requestMap = {};
-    if (client.transport.type === 'fallback')
-        client.transport.onResponse?.(({ method: method_, response: id, status, transport, }) => {
-            if (status === 'success' && method === method_)
-                requestMap[id] = transport.request;
-        });
-    return ((id) => requestMap[id] || client.request);
-}
-//# sourceMappingURL=createFilterRequestScope.js.map
+// EXTERNAL MODULE: ./node_modules/viem/_esm/actions/public/call.js + 2 modules
+var call = __webpack_require__(6782);
+// EXTERNAL MODULE: ./node_modules/viem/_esm/utils/filters/createFilterRequestScope.js
+var createFilterRequestScope = __webpack_require__(3109);
 ;// CONCATENATED MODULE: ./node_modules/viem/_esm/actions/public/createBlockFilter.js
 
 /**
@@ -3853,7 +5206,7 @@ function createFilterRequestScope(client, { method }) {
  * // { id: "0x345a6572337856574a76364e457a4366", type: 'block' }
  */
 async function createBlockFilter(client) {
-    const getRequest = createFilterRequestScope(client, {
+    const getRequest = (0,createFilterRequestScope/* createFilterRequestScope */.g)(client, {
         method: 'eth_newBlockFilter',
     });
     const id = await client.request({
@@ -3862,138 +5215,10 @@ async function createBlockFilter(client) {
     return { id, request: getRequest(id), type: 'block' };
 }
 //# sourceMappingURL=createBlockFilter.js.map
-;// CONCATENATED MODULE: ./node_modules/viem/_esm/errors/log.js
-
-class FilterTypeNotSupportedError extends base/* BaseError */.C {
-    constructor(type) {
-        super(`Filter type "${type}" is not supported.`);
-        Object.defineProperty(this, "name", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: 'FilterTypeNotSupportedError'
-        });
-    }
-}
-//# sourceMappingURL=log.js.map
-// EXTERNAL MODULE: ./node_modules/viem/_esm/utils/hash/toEventSelector.js
-var toEventSelector = __webpack_require__(9777);
-// EXTERNAL MODULE: ./node_modules/viem/_esm/utils/abi/encodeAbiParameters.js
-var encodeAbiParameters = __webpack_require__(4531);
-// EXTERNAL MODULE: ./node_modules/viem/_esm/utils/abi/formatAbiItem.js
-var formatAbiItem = __webpack_require__(5167);
-// EXTERNAL MODULE: ./node_modules/viem/_esm/utils/abi/getAbiItem.js
-var getAbiItem = __webpack_require__(4586);
-;// CONCATENATED MODULE: ./node_modules/viem/_esm/utils/abi/encodeEventTopics.js
-
-
-
-
-
-
-
-
-const docsPath = '/docs/contract/encodeEventTopics';
-function encodeEventTopics(parameters) {
-    const { abi, eventName, args } = parameters;
-    let abiItem = abi[0];
-    if (eventName) {
-        const item = (0,getAbiItem/* getAbiItem */.iY)({ abi, name: eventName });
-        if (!item)
-            throw new errors_abi/* AbiEventNotFoundError */.M_(eventName, { docsPath });
-        abiItem = item;
-    }
-    if (abiItem.type !== 'event')
-        throw new errors_abi/* AbiEventNotFoundError */.M_(undefined, { docsPath });
-    const definition = (0,formatAbiItem/* formatAbiItem */.B)(abiItem);
-    const signature = (0,toEventSelector/* toEventSelector */.h)(definition);
-    let topics = [];
-    if (args && 'inputs' in abiItem) {
-        const indexedInputs = abiItem.inputs?.filter((param) => 'indexed' in param && param.indexed);
-        const args_ = Array.isArray(args)
-            ? args
-            : Object.values(args).length > 0
-                ? indexedInputs?.map((x) => args[x.name]) ?? []
-                : [];
-        if (args_.length > 0) {
-            topics =
-                indexedInputs?.map((param, i) => Array.isArray(args_[i])
-                    ? args_[i].map((_, j) => encodeArg({ param, value: args_[i][j] }))
-                    : args_[i]
-                        ? encodeArg({ param, value: args_[i] })
-                        : null) ?? [];
-        }
-    }
-    return [signature, ...topics];
-}
-function encodeArg({ param, value, }) {
-    if (param.type === 'string' || param.type === 'bytes')
-        return (0,keccak256/* keccak256 */.S)((0,toBytes/* toBytes */.ZJ)(value));
-    if (param.type === 'tuple' || param.type.match(/^(.*)\[(\d+)?\]$/))
-        throw new FilterTypeNotSupportedError(param.type);
-    return (0,encodeAbiParameters/* encodeAbiParameters */.h)([param], [value]);
-}
-//# sourceMappingURL=encodeEventTopics.js.map
-;// CONCATENATED MODULE: ./node_modules/viem/_esm/actions/public/createContractEventFilter.js
-
-
-
-/**
- * Creates a Filter to retrieve event logs that can be used with [`getFilterChanges`](https://viem.sh/docs/actions/public/getFilterChanges) or [`getFilterLogs`](https://viem.sh/docs/actions/public/getFilterLogs).
- *
- * - Docs: https://viem.sh/docs/contract/createContractEventFilter
- *
- * @param client - Client to use
- * @param parameters - {@link CreateContractEventFilterParameters}
- * @returns [`Filter`](https://viem.sh/docs/glossary/types#filter). {@link CreateContractEventFilterReturnType}
- *
- * @example
- * import { createPublicClient, http, parseAbi } from 'viem'
- * import { mainnet } from 'viem/chains'
- * import { createContractEventFilter } from 'viem/contract'
- *
- * const client = createPublicClient({
- *   chain: mainnet,
- *   transport: http(),
- * })
- * const filter = await createContractEventFilter(client, {
- *   abi: parseAbi(['event Transfer(address indexed, address indexed, uint256)']),
- * })
- */
-async function createContractEventFilter(client, parameters) {
-    const { address, abi, args, eventName, fromBlock, strict, toBlock } = parameters;
-    const getRequest = createFilterRequestScope(client, {
-        method: 'eth_newFilter',
-    });
-    const topics = eventName
-        ? encodeEventTopics({
-            abi,
-            args,
-            eventName,
-        })
-        : undefined;
-    const id = await client.request({
-        method: 'eth_newFilter',
-        params: [
-            {
-                address,
-                fromBlock: typeof fromBlock === 'bigint' ? (0,toHex/* numberToHex */.cK)(fromBlock) : fromBlock,
-                toBlock: typeof toBlock === 'bigint' ? (0,toHex/* numberToHex */.cK)(toBlock) : toBlock,
-                topics,
-            },
-        ],
-    });
-    return {
-        abi,
-        args,
-        eventName,
-        id,
-        request: getRequest(id),
-        strict: Boolean(strict),
-        type: 'event',
-    };
-}
-//# sourceMappingURL=createContractEventFilter.js.map
+// EXTERNAL MODULE: ./node_modules/viem/_esm/actions/public/createContractEventFilter.js
+var createContractEventFilter = __webpack_require__(1100);
+// EXTERNAL MODULE: ./node_modules/viem/_esm/utils/abi/encodeEventTopics.js + 1 modules
+var encodeEventTopics = __webpack_require__(5226);
 ;// CONCATENATED MODULE: ./node_modules/viem/_esm/actions/public/createEventFilter.js
 
 
@@ -4023,13 +5248,13 @@ async function createContractEventFilter(client, parameters) {
  */
 async function createEventFilter(client, { address, args, event, events: events_, fromBlock, strict, toBlock, } = {}) {
     const events = events_ ?? (event ? [event] : undefined);
-    const getRequest = createFilterRequestScope(client, {
+    const getRequest = (0,createFilterRequestScope/* createFilterRequestScope */.g)(client, {
         method: 'eth_newFilter',
     });
     let topics = [];
     if (events) {
         topics = [
-            events.flatMap((event) => encodeEventTopics({
+            events.flatMap((event) => (0,encodeEventTopics/* encodeEventTopics */.R)({
                 abi: [event],
                 eventName: event.name,
                 args,
@@ -4086,7 +5311,7 @@ async function createEventFilter(client, { address, args, event, events: events_
  * // { id: "0x345a6572337856574a76364e457a4366", type: 'transaction' }
  */
 async function createPendingTransactionFilter(client) {
-    const getRequest = createFilterRequestScope(client, {
+    const getRequest = (0,createFilterRequestScope/* createFilterRequestScope */.g)(client, {
         method: 'eth_newPendingTransactionFilter',
     });
     const id = await client.request({
@@ -4095,73 +5320,12 @@ async function createPendingTransactionFilter(client) {
     return { id, request: getRequest(id), type: 'transaction' };
 }
 //# sourceMappingURL=createPendingTransactionFilter.js.map
-// EXTERNAL MODULE: ./node_modules/viem/_esm/accounts/utils/parseAccount.js
-var parseAccount = __webpack_require__(3033);
-// EXTERNAL MODULE: ./node_modules/viem/_esm/actions/public/estimateGas.js + 2 modules
-var estimateGas = __webpack_require__(432);
-;// CONCATENATED MODULE: ./node_modules/viem/_esm/actions/public/estimateContractGas.js
-
-
-
-
-
-/**
- * Estimates the gas required to successfully execute a contract write function call.
- *
- * - Docs: https://viem.sh/docs/contract/estimateContractGas
- *
- * Internally, uses a [Public Client](https://viem.sh/docs/clients/public) to call the [`estimateGas` action](https://viem.sh/docs/actions/public/estimateGas) with [ABI-encoded `data`](https://viem.sh/docs/contract/encodeFunctionData).
- *
- * @param client - Client to use
- * @param parameters - {@link EstimateContractGasParameters}
- * @returns The gas estimate (in wei). {@link EstimateContractGasReturnType}
- *
- * @example
- * import { createPublicClient, http, parseAbi } from 'viem'
- * import { mainnet } from 'viem/chains'
- * import { estimateContractGas } from 'viem/contract'
- *
- * const client = createPublicClient({
- *   chain: mainnet,
- *   transport: http(),
- * })
- * const gas = await estimateContractGas(client, {
- *   address: '0xFBA3912Ca04dd458c843e2EE08967fC04f3579c2',
- *   abi: parseAbi(['function mint() public']),
- *   functionName: 'mint',
- *   account: '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266',
- * })
- */
-async function estimateContractGas(client, parameters) {
-    const { abi, address, args, functionName, ...request } = parameters;
-    const data = (0,encodeFunctionData/* encodeFunctionData */.p)({
-        abi,
-        args,
-        functionName,
-    });
-    try {
-        const gas = await (0,getAction/* getAction */.T)(client, estimateGas/* estimateGas */.Q, 'estimateGas')({
-            data,
-            to: address,
-            ...request,
-        });
-        return gas;
-    }
-    catch (error) {
-        const account = request.account ? (0,parseAccount/* parseAccount */.J)(request.account) : undefined;
-        throw getContractError(error, {
-            abi,
-            address,
-            args,
-            docsPath: '/docs/contract/estimateContractGas',
-            functionName,
-            sender: account?.address,
-        });
-    }
-}
-//# sourceMappingURL=estimateContractGas.js.map
+// EXTERNAL MODULE: ./node_modules/viem/_esm/actions/public/estimateContractGas.js
+var estimateContractGas = __webpack_require__(965);
 // EXTERNAL MODULE: ./node_modules/viem/_esm/actions/public/estimateFeesPerGas.js
 var estimateFeesPerGas = __webpack_require__(1989);
+// EXTERNAL MODULE: ./node_modules/viem/_esm/actions/public/estimateGas.js + 2 modules
+var estimateGas = __webpack_require__(432);
 // EXTERNAL MODULE: ./node_modules/viem/_esm/actions/public/estimateMaxPriorityFeePerGas.js
 var estimateMaxPriorityFeePerGas = __webpack_require__(1622);
 ;// CONCATENATED MODULE: ./node_modules/viem/_esm/actions/public/getBalance.js
@@ -4240,98 +5404,8 @@ async function getBlobBaseFee(client) {
 //# sourceMappingURL=getBlobBaseFee.js.map
 // EXTERNAL MODULE: ./node_modules/viem/_esm/actions/public/getBlock.js
 var getBlock = __webpack_require__(5603);
-;// CONCATENATED MODULE: ./node_modules/viem/_esm/utils/promise/withCache.js
-const promiseCache = /*#__PURE__*/ new Map();
-const responseCache = /*#__PURE__*/ new Map();
-function withCache_getCache(cacheKey) {
-    const buildCache = (cacheKey, cache) => ({
-        clear: () => cache.delete(cacheKey),
-        get: () => cache.get(cacheKey),
-        set: (data) => cache.set(cacheKey, data),
-    });
-    const promise = buildCache(cacheKey, promiseCache);
-    const response = buildCache(cacheKey, responseCache);
-    return {
-        clear: () => {
-            promise.clear();
-            response.clear();
-        },
-        promise,
-        response,
-    };
-}
-/**
- * @description Returns the result of a given promise, and caches the result for
- * subsequent invocations against a provided cache key.
- */
-async function withCache(fn, { cacheKey, cacheTime = Infinity }) {
-    const cache = withCache_getCache(cacheKey);
-    // If a response exists in the cache, and it's not expired, return it
-    // and do not invoke the promise.
-    // If the max age is 0, the cache is disabled.
-    const response = cache.response.get();
-    if (response && cacheTime > 0) {
-        const age = new Date().getTime() - response.created.getTime();
-        if (age < cacheTime)
-            return response.data;
-    }
-    let promise = cache.promise.get();
-    if (!promise) {
-        promise = fn();
-        // Store the promise in the cache so that subsequent invocations
-        // will wait for the same promise to resolve (deduping).
-        cache.promise.set(promise);
-    }
-    try {
-        const data = await promise;
-        // Store the response in the cache so that subsequent invocations
-        // will return the same response.
-        cache.response.set({ created: new Date(), data });
-        return data;
-    }
-    finally {
-        // Clear the promise cache so that subsequent invocations will
-        // invoke the promise again.
-        cache.promise.clear();
-    }
-}
-//# sourceMappingURL=withCache.js.map
-;// CONCATENATED MODULE: ./node_modules/viem/_esm/actions/public/getBlockNumber.js
-
-const cacheKey = (id) => `blockNumber.${id}`;
-function getBlockNumberCache(id) {
-    return getCache(cacheKey(id));
-}
-/**
- * Returns the number of the most recent block seen.
- *
- * - Docs: https://viem.sh/docs/actions/public/getBlockNumber
- * - Examples: https://stackblitz.com/github/wevm/viem/tree/main/examples/blocks/fetching-blocks
- * - JSON-RPC Methods: [`eth_blockNumber`](https://ethereum.org/en/developers/docs/apis/json-rpc/#eth_blocknumber)
- *
- * @param client - Client to use
- * @param parameters - {@link GetBlockNumberParameters}
- * @returns The number of the block. {@link GetBlockNumberReturnType}
- *
- * @example
- * import { createPublicClient, http } from 'viem'
- * import { mainnet } from 'viem/chains'
- * import { getBlockNumber } from 'viem/public'
- *
- * const client = createPublicClient({
- *   chain: mainnet,
- *   transport: http(),
- * })
- * const blockNumber = await getBlockNumber(client)
- * // 69420n
- */
-async function getBlockNumber(client, { cacheTime = client.cacheTime } = {}) {
-    const blockNumberHex = await withCache(() => client.request({
-        method: 'eth_blockNumber',
-    }), { cacheKey: cacheKey(client.uid), cacheTime });
-    return BigInt(blockNumberHex);
-}
-//# sourceMappingURL=getBlockNumber.js.map
+// EXTERNAL MODULE: ./node_modules/viem/_esm/actions/public/getBlockNumber.js + 1 modules
+var getBlockNumber = __webpack_require__(5639);
 // EXTERNAL MODULE: ./node_modules/viem/_esm/utils/encoding/fromHex.js
 var fromHex = __webpack_require__(6675);
 ;// CONCATENATED MODULE: ./node_modules/viem/_esm/actions/public/getBlockTransactionCount.js
@@ -4416,297 +5490,8 @@ async function getBytecode(client, { address, blockNumber, blockTag = 'latest' }
 //# sourceMappingURL=getBytecode.js.map
 // EXTERNAL MODULE: ./node_modules/viem/_esm/actions/public/getChainId.js
 var getChainId = __webpack_require__(9798);
-// EXTERNAL MODULE: ./node_modules/viem/_esm/utils/data/size.js
-var size = __webpack_require__(5182);
-// EXTERNAL MODULE: ./node_modules/viem/_esm/errors/cursor.js
-var cursor = __webpack_require__(8146);
-// EXTERNAL MODULE: ./node_modules/viem/_esm/utils/abi/decodeAbiParameters.js + 1 modules
-var decodeAbiParameters = __webpack_require__(1965);
-;// CONCATENATED MODULE: ./node_modules/viem/_esm/utils/abi/decodeEventLog.js
-
-
-
-
-
-
-const decodeEventLog_docsPath = '/docs/contract/decodeEventLog';
-function decodeEventLog(parameters) {
-    const { abi, data, strict: strict_, topics, } = parameters;
-    const strict = strict_ ?? true;
-    const [signature, ...argTopics] = topics;
-    if (!signature)
-        throw new errors_abi/* AbiEventSignatureEmptyTopicsError */._z({ docsPath: decodeEventLog_docsPath });
-    const abiItem = abi.find((x) => x.type === 'event' &&
-        signature === (0,toEventSelector/* toEventSelector */.h)((0,formatAbiItem/* formatAbiItem */.B)(x)));
-    if (!(abiItem && 'name' in abiItem) || abiItem.type !== 'event')
-        throw new errors_abi/* AbiEventSignatureNotFoundError */.kE(signature, { docsPath: decodeEventLog_docsPath });
-    const { name, inputs } = abiItem;
-    const isUnnamed = inputs?.some((x) => !('name' in x && x.name));
-    let args = isUnnamed ? [] : {};
-    // Decode topics (indexed args).
-    const indexedInputs = inputs.filter((x) => 'indexed' in x && x.indexed);
-    for (let i = 0; i < indexedInputs.length; i++) {
-        const param = indexedInputs[i];
-        const topic = argTopics[i];
-        if (!topic)
-            throw new errors_abi/* DecodeLogTopicsMismatch */.l3({
-                abiItem,
-                param: param,
-            });
-        args[isUnnamed ? i : param.name || i] = decodeTopic({ param, value: topic });
-    }
-    // Decode data (non-indexed args).
-    const nonIndexedInputs = inputs.filter((x) => !('indexed' in x && x.indexed));
-    if (nonIndexedInputs.length > 0) {
-        if (data && data !== '0x') {
-            try {
-                const decodedData = (0,decodeAbiParameters/* decodeAbiParameters */.n)(nonIndexedInputs, data);
-                if (decodedData) {
-                    if (isUnnamed)
-                        args = [...args, ...decodedData];
-                    else {
-                        for (let i = 0; i < nonIndexedInputs.length; i++) {
-                            args[nonIndexedInputs[i].name] = decodedData[i];
-                        }
-                    }
-                }
-            }
-            catch (err) {
-                if (strict) {
-                    if (err instanceof errors_abi/* AbiDecodingDataSizeTooSmallError */.Iy ||
-                        err instanceof cursor/* PositionOutOfBoundsError */.SK)
-                        throw new errors_abi/* DecodeLogDataMismatch */.fo({
-                            abiItem,
-                            data: data,
-                            params: nonIndexedInputs,
-                            size: (0,size/* size */.E)(data),
-                        });
-                    throw err;
-                }
-            }
-        }
-        else if (strict) {
-            throw new errors_abi/* DecodeLogDataMismatch */.fo({
-                abiItem,
-                data: '0x',
-                params: nonIndexedInputs,
-                size: 0,
-            });
-        }
-    }
-    return {
-        eventName: name,
-        args: Object.values(args).length > 0 ? args : undefined,
-    };
-}
-function decodeTopic({ param, value }) {
-    if (param.type === 'string' ||
-        param.type === 'bytes' ||
-        param.type === 'tuple' ||
-        param.type.match(/^(.*)\[(\d+)?\]$/))
-        return value;
-    const decodedArg = (0,decodeAbiParameters/* decodeAbiParameters */.n)([param], value) || [];
-    return decodedArg[0];
-}
-//# sourceMappingURL=decodeEventLog.js.map
-;// CONCATENATED MODULE: ./node_modules/viem/_esm/utils/abi/parseEventLogs.js
-
-
-/**
- * Extracts & decodes logs matching the provided signature(s) (`abi` + optional `eventName`)
- * from a set of opaque logs.
- *
- * @param parameters - {@link ParseEventLogsParameters}
- * @returns The logs. {@link ParseEventLogsReturnType}
- *
- * @example
- * import { createClient, http } from 'viem'
- * import { mainnet } from 'viem/chains'
- * import { parseEventLogs } from 'viem/op-stack'
- *
- * const client = createClient({
- *   chain: mainnet,
- *   transport: http(),
- * })
- *
- * const receipt = await getTransactionReceipt(client, {
- *   hash: '0xec23b2ba4bc59ba61554507c1b1bc91649e6586eb2dd00c728e8ed0db8bb37ea',
- * })
- *
- * const logs = parseEventLogs({ logs: receipt.logs })
- * // [{ args: { ... }, eventName: 'TransactionDeposited', ... }, ...]
- */
-function parseEventLogs({ abi, eventName, logs, strict = true, }) {
-    return logs
-        .map((log) => {
-        try {
-            const event = decodeEventLog({
-                ...log,
-                abi,
-                strict,
-            });
-            if (eventName && !eventName.includes(event.eventName))
-                return null;
-            return { ...event, ...log };
-        }
-        catch (err) {
-            let eventName;
-            let isUnnamed;
-            if (err instanceof errors_abi/* AbiEventSignatureNotFoundError */.kE)
-                return null;
-            if (err instanceof errors_abi/* DecodeLogDataMismatch */.fo ||
-                err instanceof errors_abi/* DecodeLogTopicsMismatch */.l3) {
-                // If strict mode is on, and log data/topics do not match event definition, skip.
-                if (strict)
-                    return null;
-                eventName = err.abiItem.name;
-                isUnnamed = err.abiItem.inputs?.some((x) => !('name' in x && x.name));
-            }
-            // Set args to empty if there is an error decoding (e.g. indexed/non-indexed params mismatch).
-            return { ...log, args: isUnnamed ? [] : {}, eventName };
-        }
-    })
-        .filter(Boolean);
-}
-//# sourceMappingURL=parseEventLogs.js.map
-;// CONCATENATED MODULE: ./node_modules/viem/_esm/utils/formatters/log.js
-function formatLog(log, { args, eventName, } = {}) {
-    return {
-        ...log,
-        blockHash: log.blockHash ? log.blockHash : null,
-        blockNumber: log.blockNumber ? BigInt(log.blockNumber) : null,
-        logIndex: log.logIndex ? Number(log.logIndex) : null,
-        transactionHash: log.transactionHash ? log.transactionHash : null,
-        transactionIndex: log.transactionIndex
-            ? Number(log.transactionIndex)
-            : null,
-        ...(eventName ? { args, eventName } : {}),
-    };
-}
-//# sourceMappingURL=log.js.map
-;// CONCATENATED MODULE: ./node_modules/viem/_esm/actions/public/getLogs.js
-
-
-
-
-
-/**
- * Returns a list of event logs matching the provided parameters.
- *
- * - Docs: https://viem.sh/docs/actions/public/getLogs
- * - Examples: https://stackblitz.com/github/wevm/viem/tree/main/examples/filters-and-logs/event-logs
- * - JSON-RPC Methods: [`eth_getLogs`](https://ethereum.org/en/developers/docs/apis/json-rpc/#eth_getlogs)
- *
- * @param client - Client to use
- * @param parameters - {@link GetLogsParameters}
- * @returns A list of event logs. {@link GetLogsReturnType}
- *
- * @example
- * import { createPublicClient, http, parseAbiItem } from 'viem'
- * import { mainnet } from 'viem/chains'
- * import { getLogs } from 'viem/public'
- *
- * const client = createPublicClient({
- *   chain: mainnet,
- *   transport: http(),
- * })
- * const logs = await getLogs(client)
- */
-async function getLogs(client, { address, blockHash, fromBlock, toBlock, event, events: events_, args, strict: strict_, } = {}) {
-    const strict = strict_ ?? false;
-    const events = events_ ?? (event ? [event] : undefined);
-    let topics = [];
-    if (events) {
-        topics = [
-            events.flatMap((event) => encodeEventTopics({
-                abi: [event],
-                eventName: event.name,
-                args,
-            })),
-        ];
-        if (event)
-            topics = topics[0];
-    }
-    let logs;
-    if (blockHash) {
-        logs = await client.request({
-            method: 'eth_getLogs',
-            params: [{ address, topics, blockHash }],
-        });
-    }
-    else {
-        logs = await client.request({
-            method: 'eth_getLogs',
-            params: [
-                {
-                    address,
-                    topics,
-                    fromBlock: typeof fromBlock === 'bigint' ? (0,toHex/* numberToHex */.cK)(fromBlock) : fromBlock,
-                    toBlock: typeof toBlock === 'bigint' ? (0,toHex/* numberToHex */.cK)(toBlock) : toBlock,
-                },
-            ],
-        });
-    }
-    const formattedLogs = logs.map((log) => formatLog(log));
-    if (!events)
-        return formattedLogs;
-    return parseEventLogs({
-        abi: events,
-        logs: formattedLogs,
-        strict,
-    });
-}
-//# sourceMappingURL=getLogs.js.map
-;// CONCATENATED MODULE: ./node_modules/viem/_esm/actions/public/getContractEvents.js
-
-
-
-/**
- * Returns a list of event logs emitted by a contract.
- *
- * - Docs: https://viem.sh/docs/actions/public/getContractEvents
- * - JSON-RPC Methods: [`eth_getLogs`](https://ethereum.org/en/developers/docs/apis/json-rpc/#eth_getlogs)
- *
- * @param client - Client to use
- * @param parameters - {@link GetContractEventsParameters}
- * @returns A list of event logs. {@link GetContractEventsReturnType}
- *
- * @example
- * import { createClient, http } from 'viem'
- * import { mainnet } from 'viem/chains'
- * import { getContractEvents } from 'viem/public'
- * import { wagmiAbi } from './abi'
- *
- * const client = createClient({
- *   chain: mainnet,
- *   transport: http(),
- * })
- * const logs = await getContractEvents(client, {
- *  address: '0xFBA3912Ca04dd458c843e2EE08967fC04f3579c2',
- *  abi: wagmiAbi,
- *  eventName: 'Transfer'
- * })
- */
-async function getContractEvents(client, parameters) {
-    const { abi, address, args, blockHash, eventName, fromBlock, toBlock, strict, } = parameters;
-    const event = eventName
-        ? (0,getAbiItem/* getAbiItem */.iY)({ abi, name: eventName })
-        : undefined;
-    const events = !event
-        ? abi.filter((x) => x.type === 'event')
-        : undefined;
-    return (0,getAction/* getAction */.T)(client, getLogs, 'getLogs')({
-        address,
-        args,
-        blockHash,
-        event,
-        events,
-        fromBlock,
-        toBlock,
-        strict,
-    });
-}
-//# sourceMappingURL=getContractEvents.js.map
+// EXTERNAL MODULE: ./node_modules/viem/_esm/actions/public/getContractEvents.js
+var getContractEvents = __webpack_require__(1443);
 ;// CONCATENATED MODULE: ./node_modules/viem/_esm/utils/formatters/feeHistory.js
 function formatFeeHistory(feeHistory) {
     return {
@@ -4757,110 +5542,12 @@ async function getFeeHistory(client, { blockCount, blockNumber, blockTag = 'late
     return formatFeeHistory(feeHistory);
 }
 //# sourceMappingURL=getFeeHistory.js.map
-;// CONCATENATED MODULE: ./node_modules/viem/_esm/actions/public/getFilterChanges.js
-
-
-
-/**
- * Returns a list of logs or hashes based on a [Filter](/docs/glossary/terms#filter) since the last time it was called.
- *
- * - Docs: https://viem.sh/docs/actions/public/getFilterChanges
- * - JSON-RPC Methods: [`eth_getFilterChanges`](https://ethereum.org/en/developers/docs/apis/json-rpc/#eth_getfilterchanges)
- *
- * A Filter can be created from the following actions:
- *
- * - [`createBlockFilter`](https://viem.sh/docs/actions/public/createBlockFilter)
- * - [`createContractEventFilter`](https://viem.sh/docs/contract/createContractEventFilter)
- * - [`createEventFilter`](https://viem.sh/docs/actions/public/createEventFilter)
- * - [`createPendingTransactionFilter`](https://viem.sh/docs/actions/public/createPendingTransactionFilter)
- *
- * Depending on the type of filter, the return value will be different:
- *
- * - If the filter was created with `createContractEventFilter` or `createEventFilter`, it returns a list of logs.
- * - If the filter was created with `createPendingTransactionFilter`, it returns a list of transaction hashes.
- * - If the filter was created with `createBlockFilter`, it returns a list of block hashes.
- *
- * @param client - Client to use
- * @param parameters - {@link GetFilterChangesParameters}
- * @returns Logs or hashes. {@link GetFilterChangesReturnType}
- *
- * @example
- * // Blocks
- * import { createPublicClient, http } from 'viem'
- * import { mainnet } from 'viem/chains'
- * import { createBlockFilter, getFilterChanges } from 'viem/public'
- *
- * const client = createPublicClient({
- *   chain: mainnet,
- *   transport: http(),
- * })
- * const filter = await createBlockFilter(client)
- * const hashes = await getFilterChanges(client, { filter })
- *
- * @example
- * // Contract Events
- * import { createPublicClient, http, parseAbi } from 'viem'
- * import { mainnet } from 'viem/chains'
- * import { createContractEventFilter, getFilterChanges } from 'viem/public'
- *
- * const client = createPublicClient({
- *   chain: mainnet,
- *   transport: http(),
- * })
- * const filter = await createContractEventFilter(client, {
- *   address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
- *   abi: parseAbi(['event Transfer(address indexed, address indexed, uint256)']),
- *   eventName: 'Transfer',
- * })
- * const logs = await getFilterChanges(client, { filter })
- *
- * @example
- * // Raw Events
- * import { createPublicClient, http, parseAbiItem } from 'viem'
- * import { mainnet } from 'viem/chains'
- * import { createEventFilter, getFilterChanges } from 'viem/public'
- *
- * const client = createPublicClient({
- *   chain: mainnet,
- *   transport: http(),
- * })
- * const filter = await createEventFilter(client, {
- *   address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
- *   event: parseAbiItem('event Transfer(address indexed, address indexed, uint256)'),
- * })
- * const logs = await getFilterChanges(client, { filter })
- *
- * @example
- * // Transactions
- * import { createPublicClient, http } from 'viem'
- * import { mainnet } from 'viem/chains'
- * import { createPendingTransactionFilter, getFilterChanges } from 'viem/public'
- *
- * const client = createPublicClient({
- *   chain: mainnet,
- *   transport: http(),
- * })
- * const filter = await createPendingTransactionFilter(client)
- * const hashes = await getFilterChanges(client, { filter })
- */
-async function getFilterChanges(_client, { filter, }) {
-    const strict = 'strict' in filter && filter.strict;
-    const logs = await filter.request({
-        method: 'eth_getFilterChanges',
-        params: [filter.id],
-    });
-    if (typeof logs[0] === 'string')
-        return logs;
-    const formattedLogs = logs.map((log) => formatLog(log));
-    if (!('abi' in filter) || !filter.abi)
-        return formattedLogs;
-    return parseEventLogs({
-        abi: filter.abi,
-        logs: formattedLogs,
-        strict,
-    });
-}
-//# sourceMappingURL=getFilterChanges.js.map
+// EXTERNAL MODULE: ./node_modules/viem/_esm/actions/public/getFilterChanges.js
+var getFilterChanges = __webpack_require__(3373);
+// EXTERNAL MODULE: ./node_modules/viem/_esm/utils/abi/parseEventLogs.js
+var parseEventLogs = __webpack_require__(8937);
+// EXTERNAL MODULE: ./node_modules/viem/_esm/utils/formatters/log.js
+var formatters_log = __webpack_require__(7070);
 ;// CONCATENATED MODULE: ./node_modules/viem/_esm/actions/public/getFilterLogs.js
 
 
@@ -4898,10 +5585,10 @@ async function getFilterLogs(_client, { filter, }) {
         method: 'eth_getFilterLogs',
         params: [filter.id],
     });
-    const formattedLogs = logs.map((log) => formatLog(log));
+    const formattedLogs = logs.map((log) => (0,formatters_log/* formatLog */.e)(log));
     if (!filter.abi)
         return formattedLogs;
-    return parseEventLogs({
+    return (0,parseEventLogs/* parseEventLogs */.p)({
         abi: filter.abi,
         logs: formattedLogs,
         strict,
@@ -4910,6 +5597,8 @@ async function getFilterLogs(_client, { filter, }) {
 //# sourceMappingURL=getFilterLogs.js.map
 // EXTERNAL MODULE: ./node_modules/viem/_esm/actions/public/getGasPrice.js
 var getGasPrice = __webpack_require__(5242);
+// EXTERNAL MODULE: ./node_modules/viem/_esm/actions/public/getLogs.js
+var getLogs = __webpack_require__(3295);
 ;// CONCATENATED MODULE: ./node_modules/viem/_esm/utils/formatters/proof.js
 
 function formatStorageProof(storageProof) {
@@ -5098,7 +5787,7 @@ async function getTransaction(client, { blockHash, blockNumber, blockTag: blockT
  */
 async function getTransactionConfirmations(client, { hash, transactionReceipt }) {
     const [blockNumber, transaction] = await Promise.all([
-        (0,getAction/* getAction */.T)(client, getBlockNumber, 'getBlockNumber')({}),
+        (0,getAction/* getAction */.T)(client, getBlockNumber/* getBlockNumber */.G, 'getBlockNumber')({}),
         hash
             ? (0,getAction/* getAction */.T)(client, getTransaction, 'getBlockNumber')({ hash })
             : undefined,
@@ -5139,7 +5828,7 @@ function formatTransactionReceipt(transactionReceipt) {
             ? BigInt(transactionReceipt.gasUsed)
             : null,
         logs: transactionReceipt.logs
-            ? transactionReceipt.logs.map((log) => formatLog(log))
+            ? transactionReceipt.logs.map((log) => (0,formatters_log/* formatLog */.e)(log))
             : null,
         to: transactionReceipt.to ? transactionReceipt.to : null,
         transactionIndex: transactionReceipt.transactionIndex
@@ -5199,6 +5888,10 @@ async function getTransactionReceipt(client, { hash }) {
     return format(receipt);
 }
 //# sourceMappingURL=getTransactionReceipt.js.map
+// EXTERNAL MODULE: ./node_modules/viem/_esm/errors/abi.js
+var errors_abi = __webpack_require__(7372);
+// EXTERNAL MODULE: ./node_modules/viem/_esm/utils/errors/getContractError.js
+var getContractError = __webpack_require__(2350);
 ;// CONCATENATED MODULE: ./node_modules/viem/_esm/actions/public/multicall.js
 
 
@@ -5296,7 +5989,7 @@ async function multicall(client, parameters) {
             ];
         }
         catch (err) {
-            const error = getContractError(err, {
+            const error = (0,getContractError/* getContractError */.j)(err, {
                 abi,
                 address,
                 args,
@@ -5315,7 +6008,7 @@ async function multicall(client, parameters) {
             ];
         }
     }
-    const aggregate3Results = await Promise.allSettled(chunkedCalls.map((calls) => (0,getAction/* getAction */.T)(client, readContract, 'readContract')({
+    const aggregate3Results = await Promise.allSettled(chunkedCalls.map((calls) => (0,getAction/* getAction */.T)(client, readContract/* readContract */.J, 'readContract')({
         abi: abis/* multicall3Abi */.v2,
         address: multicallAddress,
         args: [calls],
@@ -5365,7 +6058,7 @@ async function multicall(client, parameters) {
                 results.push(allowFailure ? { result, status: 'success' } : result);
             }
             catch (err) {
-                const error = getContractError(err, {
+                const error = (0,getContractError/* getContractError */.j)(err, {
                     abi,
                     address,
                     args,
@@ -5383,122 +6076,10 @@ async function multicall(client, parameters) {
     return results;
 }
 //# sourceMappingURL=multicall.js.map
-;// CONCATENATED MODULE: ./node_modules/viem/_esm/actions/public/simulateContract.js
-
-
-
-
-
-
-/**
- * Simulates/validates a contract interaction. This is useful for retrieving **return data** and **revert reasons** of contract write functions.
- *
- * - Docs: https://viem.sh/docs/contract/simulateContract
- * - Examples: https://stackblitz.com/github/wevm/viem/tree/main/examples/contracts/writing-to-contracts
- *
- * This function does not require gas to execute and _**does not**_ change the state of the blockchain. It is almost identical to [`readContract`](https://viem.sh/docs/contract/readContract), but also supports contract write functions.
- *
- * Internally, uses a [Public Client](https://viem.sh/docs/clients/public) to call the [`call` action](https://viem.sh/docs/actions/public/call) with [ABI-encoded `data`](https://viem.sh/docs/contract/encodeFunctionData).
- *
- * @param client - Client to use
- * @param parameters - {@link SimulateContractParameters}
- * @returns The simulation result and write request. {@link SimulateContractReturnType}
- *
- * @example
- * import { createPublicClient, http } from 'viem'
- * import { mainnet } from 'viem/chains'
- * import { simulateContract } from 'viem/contract'
- *
- * const client = createPublicClient({
- *   chain: mainnet,
- *   transport: http(),
- * })
- * const result = await simulateContract(client, {
- *   address: '0xFBA3912Ca04dd458c843e2EE08967fC04f3579c2',
- *   abi: parseAbi(['function mint(uint32) view returns (uint32)']),
- *   functionName: 'mint',
- *   args: ['69420'],
- *   account: '0xA0Cf798816D4b9b9866b5330EEa46a18382f251e',
- * })
- */
-async function simulateContract(client, parameters) {
-    const { abi, address, args, dataSuffix, functionName, ...callRequest } = parameters;
-    const account = callRequest.account
-        ? (0,parseAccount/* parseAccount */.J)(callRequest.account)
-        : client.account;
-    const calldata = (0,encodeFunctionData/* encodeFunctionData */.p)({ abi, args, functionName });
-    try {
-        const { data } = await (0,getAction/* getAction */.T)(client, call/* call */.T1, 'call')({
-            batch: false,
-            data: `${calldata}${dataSuffix ? dataSuffix.replace('0x', '') : ''}`,
-            to: address,
-            ...callRequest,
-            account,
-        });
-        const result = (0,decodeFunctionResult/* decodeFunctionResult */.e)({
-            abi,
-            args,
-            functionName,
-            data: data || '0x',
-        });
-        const minimizedAbi = abi.filter((abiItem) => 'name' in abiItem && abiItem.name === parameters.functionName);
-        return {
-            result,
-            request: {
-                abi: minimizedAbi,
-                address,
-                args,
-                dataSuffix,
-                functionName,
-                ...callRequest,
-                account,
-            },
-        };
-    }
-    catch (error) {
-        throw getContractError(error, {
-            abi,
-            address,
-            args,
-            docsPath: '/docs/contract/simulateContract',
-            functionName,
-            sender: account?.address,
-        });
-    }
-}
-//# sourceMappingURL=simulateContract.js.map
-;// CONCATENATED MODULE: ./node_modules/viem/_esm/actions/public/uninstallFilter.js
-/**
- * Destroys a [`Filter`](https://viem.sh/docs/glossary/types#filter).
- *
- * - Docs: https://viem.sh/docs/actions/public/uninstallFilter
- * - JSON-RPC Methods: [`eth_uninstallFilter`](https://ethereum.org/en/developers/docs/apis/json-rpc/#eth_uninstallFilter)
- *
- * Destroys a Filter that was created from one of the following Actions:
- * - [`createBlockFilter`](https://viem.sh/docs/actions/public/createBlockFilter)
- * - [`createEventFilter`](https://viem.sh/docs/actions/public/createEventFilter)
- * - [`createPendingTransactionFilter`](https://viem.sh/docs/actions/public/createPendingTransactionFilter)
- *
- * @param client - Client to use
- * @param parameters - {@link UninstallFilterParameters}
- * @returns A boolean indicating if the Filter was successfully uninstalled. {@link UninstallFilterReturnType}
- *
- * @example
- * import { createPublicClient, http } from 'viem'
- * import { mainnet } from 'viem/chains'
- * import { createPendingTransactionFilter, uninstallFilter } from 'viem/public'
- *
- * const filter = await createPendingTransactionFilter(client)
- * const uninstalled = await uninstallFilter(client, { filter })
- * // true
- */
-async function uninstallFilter(_client, { filter }) {
-    return filter.request({
-        method: 'eth_uninstallFilter',
-        params: [filter.id],
-    });
-}
-//# sourceMappingURL=uninstallFilter.js.map
+// EXTERNAL MODULE: ./node_modules/viem/_esm/actions/public/simulateContract.js
+var simulateContract = __webpack_require__(8318);
+// EXTERNAL MODULE: ./node_modules/viem/_esm/actions/public/uninstallFilter.js
+var uninstallFilter = __webpack_require__(5980);
 ;// CONCATENATED MODULE: ./node_modules/viem/_esm/constants/strings.js
 const presignMessagePrefix = '\x19Ethereum Signed Message:\n';
 //# sourceMappingURL=strings.js.map
@@ -5864,6 +6445,8 @@ async function verifyMessage(client, { address, message, signature, ...callReque
     });
 }
 //# sourceMappingURL=verifyMessage.js.map
+// EXTERNAL MODULE: ./node_modules/viem/_esm/utils/abi/encodeAbiParameters.js
+var encodeAbiParameters = __webpack_require__(4531);
 // EXTERNAL MODULE: ./node_modules/viem/_esm/utils/typedData.js + 1 modules
 var typedData = __webpack_require__(988);
 ;// CONCATENATED MODULE: ./node_modules/viem/_esm/utils/signature/hashTypedData.js
@@ -6014,84 +6597,14 @@ async function verifyTypedData(client, parameters) {
 //# sourceMappingURL=verifyTypedData.js.map
 // EXTERNAL MODULE: ./node_modules/viem/_esm/errors/block.js
 var errors_block = __webpack_require__(4259);
-;// CONCATENATED MODULE: ./node_modules/viem/_esm/utils/observe.js
-const listenersCache = /*#__PURE__*/ new Map();
-const cleanupCache = /*#__PURE__*/ new Map();
-let callbackCount = 0;
-/**
- * @description Sets up an observer for a given function. If another function
- * is set up under the same observer id, the function will only be called once
- * for both instances of the observer.
- */
-function observe(observerId, callbacks, fn) {
-    const callbackId = ++callbackCount;
-    const getListeners = () => listenersCache.get(observerId) || [];
-    const unsubscribe = () => {
-        const listeners = getListeners();
-        listenersCache.set(observerId, listeners.filter((cb) => cb.id !== callbackId));
-    };
-    const unwatch = () => {
-        const cleanup = cleanupCache.get(observerId);
-        if (getListeners().length === 1 && cleanup)
-            cleanup();
-        unsubscribe();
-    };
-    const listeners = getListeners();
-    listenersCache.set(observerId, [
-        ...listeners,
-        { id: callbackId, fns: callbacks },
-    ]);
-    if (listeners && listeners.length > 0)
-        return unwatch;
-    const emit = {};
-    for (const key in callbacks) {
-        emit[key] = ((...args) => {
-            const listeners = getListeners();
-            if (listeners.length === 0)
-                return;
-            for (const listener of listeners)
-                listener.fns[key]?.(...args);
-        });
-    }
-    const cleanup = fn(emit);
-    if (typeof cleanup === 'function')
-        cleanupCache.set(observerId, cleanup);
-    return unwatch;
-}
-//# sourceMappingURL=observe.js.map
+// EXTERNAL MODULE: ./node_modules/viem/_esm/utils/observe.js
+var observe = __webpack_require__(9726);
 // EXTERNAL MODULE: ./node_modules/viem/_esm/utils/promise/withRetry.js
 var withRetry = __webpack_require__(9910);
 // EXTERNAL MODULE: ./node_modules/viem/_esm/utils/stringify.js
 var stringify = __webpack_require__(8463);
-// EXTERNAL MODULE: ./node_modules/viem/_esm/utils/wait.js
-var wait = __webpack_require__(669);
-;// CONCATENATED MODULE: ./node_modules/viem/_esm/utils/poll.js
-
-/**
- * @description Polls a function at a specified interval.
- */
-function poll(fn, { emitOnBegin, initialWaitTime, interval }) {
-    let active = true;
-    const unwatch = () => (active = false);
-    const watch = async () => {
-        let data = undefined;
-        if (emitOnBegin)
-            data = await fn({ unpoll: unwatch });
-        const initialWait = (await initialWaitTime?.(data)) ?? interval;
-        await (0,wait/* wait */.u)(initialWait);
-        const poll = async () => {
-            if (!active)
-                return;
-            await fn({ unpoll: unwatch });
-            await (0,wait/* wait */.u)(interval);
-            poll();
-        };
-        poll();
-    };
-    watch();
-    return unwatch;
-}
-//# sourceMappingURL=poll.js.map
+// EXTERNAL MODULE: ./node_modules/viem/_esm/utils/poll.js
+var poll = __webpack_require__(5213);
 ;// CONCATENATED MODULE: ./node_modules/viem/_esm/actions/public/watchBlockNumber.js
 
 
@@ -6135,9 +6648,9 @@ function watchBlockNumber(client, { emitOnBegin = false, emitMissed = false, onB
             emitMissed,
             pollingInterval,
         ]);
-        return observe(observerId, { onBlockNumber, onError }, (emit) => poll(async () => {
+        return (0,observe/* observe */.lB)(observerId, { onBlockNumber, onError }, (emit) => (0,poll/* poll */.w)(async () => {
             try {
-                const blockNumber = await (0,getAction/* getAction */.T)(client, getBlockNumber, 'getBlockNumber')({ cacheTime: 0 });
+                const blockNumber = await (0,getAction/* getAction */.T)(client, getBlockNumber/* getBlockNumber */.G, 'getBlockNumber')({ cacheTime: 0 });
                 if (prevBlockNumber) {
                     // If the current block number is the same as the previous,
                     // we can skip.
@@ -6174,7 +6687,7 @@ function watchBlockNumber(client, { emitOnBegin = false, emitMissed = false, onB
             emitOnBegin,
             emitMissed,
         ]);
-        return observe(observerId, { onBlockNumber, onError }, (emit) => {
+        return (0,observe/* observe */.lB)(observerId, { onBlockNumber, onError }, (emit) => {
             let active = true;
             let unsubscribe = () => (active = false);
             (async () => {
@@ -6265,7 +6778,7 @@ timeout, }) {
     return new Promise((resolve, reject) => {
         if (timeout)
             setTimeout(() => reject(new errors_transaction/* WaitForTransactionReceiptTimeoutError */.WA({ hash })), timeout);
-        const _unobserve = observe(observerId, { onReplaced, resolve, reject }, (emit) => {
+        const _unobserve = (0,observe/* observe */.lB)(observerId, { onReplaced, resolve, reject }, (emit) => {
             const _unwatch = (0,getAction/* getAction */.T)(client, watchBlockNumber, 'watchBlockNumber')({
                 emitMissed: true,
                 emitOnBegin: true,
@@ -6434,7 +6947,7 @@ function watchBlocks(client, { blockTag = 'latest', emitMissed = false, emitOnBe
             includeTransactions,
             pollingInterval,
         ]);
-        return observe(observerId, { onBlock, onError }, (emit) => poll(async () => {
+        return (0,observe/* observe */.lB)(observerId, { onBlock, onError }, (emit) => (0,poll/* poll */.w)(async () => {
             try {
                 const block = await (0,getAction/* getAction */.T)(client, getBlock/* getBlock */.g, 'getBlock')({
                     blockTag,
@@ -6510,227 +7023,12 @@ function watchBlocks(client, { blockTag = 'latest', emitMissed = false, emitOnBe
     return enablePolling ? pollBlocks() : subscribeBlocks();
 }
 //# sourceMappingURL=watchBlocks.js.map
-;// CONCATENATED MODULE: ./node_modules/viem/_esm/actions/public/watchContractEvent.js
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/**
- * Watches and returns emitted contract event logs.
- *
- * - Docs: https://viem.sh/docs/contract/watchContractEvent
- *
- * This Action will batch up all the event logs found within the [`pollingInterval`](https://viem.sh/docs/contract/watchContractEvent#pollinginterval-optional), and invoke them via [`onLogs`](https://viem.sh/docs/contract/watchContractEvent#onLogs).
- *
- * `watchContractEvent` will attempt to create an [Event Filter](https://viem.sh/docs/contract/createContractEventFilter) and listen to changes to the Filter per polling interval, however, if the RPC Provider does not support Filters (e.g. `eth_newFilter`), then `watchContractEvent` will fall back to using [`getLogs`](https://viem.sh/docs/actions/public/getLogs) instead.
- *
- * @param client - Client to use
- * @param parameters - {@link WatchContractEventParameters}
- * @returns A function that can be invoked to stop watching for new event logs. {@link WatchContractEventReturnType}
- *
- * @example
- * import { createPublicClient, http, parseAbi } from 'viem'
- * import { mainnet } from 'viem/chains'
- * import { watchContractEvent } from 'viem/contract'
- *
- * const client = createPublicClient({
- *   chain: mainnet,
- *   transport: http(),
- * })
- * const unwatch = watchContractEvent(client, {
- *   address: '0xFBA3912Ca04dd458c843e2EE08967fC04f3579c2',
- *   abi: parseAbi(['event Transfer(address indexed from, address indexed to, uint256 value)']),
- *   eventName: 'Transfer',
- *   args: { from: '0xc961145a54C96E3aE9bAA048c4F4D6b04C13916b' },
- *   onLogs: (logs) => console.log(logs),
- * })
- */
-function watchContractEvent(client, parameters) {
-    const { abi, address, args, batch = true, eventName, fromBlock, onError, onLogs, poll: poll_, pollingInterval = client.pollingInterval, strict: strict_, } = parameters;
-    const enablePolling = typeof poll_ !== 'undefined'
-        ? poll_
-        : client.transport.type !== 'webSocket' || typeof fromBlock === 'number';
-    const pollContractEvent = () => {
-        const strict = strict_ ?? false;
-        const observerId = (0,stringify/* stringify */.A)([
-            'watchContractEvent',
-            address,
-            args,
-            batch,
-            client.uid,
-            eventName,
-            pollingInterval,
-            strict,
-            fromBlock,
-        ]);
-        return observe(observerId, { onLogs, onError }, (emit) => {
-            let previousBlockNumber;
-            if (fromBlock !== undefined)
-                previousBlockNumber = fromBlock - 1n;
-            let filter;
-            let initialized = false;
-            const unwatch = poll(async () => {
-                if (!initialized) {
-                    try {
-                        filter = (await (0,getAction/* getAction */.T)(client, createContractEventFilter, 'createContractEventFilter')({
-                            abi,
-                            address,
-                            args: args,
-                            eventName: eventName,
-                            strict: strict,
-                            fromBlock,
-                        }));
-                    }
-                    catch { }
-                    initialized = true;
-                    return;
-                }
-                try {
-                    let logs;
-                    if (filter) {
-                        logs = await (0,getAction/* getAction */.T)(client, getFilterChanges, 'getFilterChanges')({ filter });
-                    }
-                    else {
-                        // If the filter doesn't exist, we will fall back to use `getLogs`.
-                        // The fall back exists because some RPC Providers do not support filters.
-                        // Fetch the block number to use for `getLogs`.
-                        const blockNumber = await (0,getAction/* getAction */.T)(client, getBlockNumber, 'getBlockNumber')({});
-                        // If the block number has changed, we will need to fetch the logs.
-                        // If the block number doesn't exist, we are yet to reach the first poll interval,
-                        // so do not emit any logs.
-                        if (previousBlockNumber && previousBlockNumber !== blockNumber) {
-                            logs = await (0,getAction/* getAction */.T)(client, getContractEvents, 'getContractEvents')({
-                                abi,
-                                address,
-                                args,
-                                eventName,
-                                fromBlock: previousBlockNumber + 1n,
-                                toBlock: blockNumber,
-                                strict,
-                            });
-                        }
-                        else {
-                            logs = [];
-                        }
-                        previousBlockNumber = blockNumber;
-                    }
-                    if (logs.length === 0)
-                        return;
-                    if (batch)
-                        emit.onLogs(logs);
-                    else
-                        for (const log of logs)
-                            emit.onLogs([log]);
-                }
-                catch (err) {
-                    // If a filter has been set and gets uninstalled, providers will throw an InvalidInput error.
-                    // Reinitalize the filter when this occurs
-                    if (filter && err instanceof rpc/* InvalidInputRpcError */.Di)
-                        initialized = false;
-                    emit.onError?.(err);
-                }
-            }, {
-                emitOnBegin: true,
-                interval: pollingInterval,
-            });
-            return async () => {
-                if (filter)
-                    await (0,getAction/* getAction */.T)(client, uninstallFilter, 'uninstallFilter')({ filter });
-                unwatch();
-            };
-        });
-    };
-    const subscribeContractEvent = () => {
-        const strict = strict_ ?? false;
-        const observerId = (0,stringify/* stringify */.A)([
-            'watchContractEvent',
-            address,
-            args,
-            batch,
-            client.uid,
-            eventName,
-            pollingInterval,
-            strict,
-        ]);
-        let active = true;
-        let unsubscribe = () => (active = false);
-        return observe(observerId, { onLogs, onError }, (emit) => {
-            ;
-            (async () => {
-                try {
-                    const topics = eventName
-                        ? encodeEventTopics({
-                            abi: abi,
-                            eventName: eventName,
-                            args,
-                        })
-                        : [];
-                    const { unsubscribe: unsubscribe_ } = await client.transport.subscribe({
-                        params: ['logs', { address, topics }],
-                        onData(data) {
-                            if (!active)
-                                return;
-                            const log = data.result;
-                            try {
-                                const { eventName, args } = decodeEventLog({
-                                    abi: abi,
-                                    data: log.data,
-                                    topics: log.topics,
-                                    strict: strict_,
-                                });
-                                const formatted = formatLog(log, {
-                                    args,
-                                    eventName: eventName,
-                                });
-                                emit.onLogs([formatted]);
-                            }
-                            catch (err) {
-                                let eventName;
-                                let isUnnamed;
-                                if (err instanceof errors_abi/* DecodeLogDataMismatch */.fo ||
-                                    err instanceof errors_abi/* DecodeLogTopicsMismatch */.l3) {
-                                    // If strict mode is on, and log data/topics do not match event definition, skip.
-                                    if (strict_)
-                                        return;
-                                    eventName = err.abiItem.name;
-                                    isUnnamed = err.abiItem.inputs?.some((x) => !('name' in x && x.name));
-                                }
-                                // Set args to empty if there is an error decoding (e.g. indexed/non-indexed params mismatch).
-                                const formatted = formatLog(log, {
-                                    args: isUnnamed ? [] : {},
-                                    eventName,
-                                });
-                                emit.onLogs([formatted]);
-                            }
-                        },
-                        onError(error) {
-                            emit.onError?.(error);
-                        },
-                    });
-                    unsubscribe = unsubscribe_;
-                    if (!active)
-                        unsubscribe();
-                }
-                catch (err) {
-                    onError?.(err);
-                }
-            })();
-            return () => unsubscribe();
-        });
-    };
-    return enablePolling ? pollContractEvent() : subscribeContractEvent();
-}
-//# sourceMappingURL=watchContractEvent.js.map
+// EXTERNAL MODULE: ./node_modules/viem/_esm/actions/public/watchContractEvent.js
+var watchContractEvent = __webpack_require__(301);
+// EXTERNAL MODULE: ./node_modules/viem/_esm/errors/rpc.js
+var rpc = __webpack_require__(7513);
+// EXTERNAL MODULE: ./node_modules/viem/_esm/utils/abi/decodeEventLog.js
+var decodeEventLog = __webpack_require__(9483);
 ;// CONCATENATED MODULE: ./node_modules/viem/_esm/actions/public/watchEvent.js
 
 
@@ -6792,13 +7090,13 @@ function watchEvent(client, { address, args, batch = true, event, events, fromBl
             pollingInterval,
             fromBlock,
         ]);
-        return observe(observerId, { onLogs, onError }, (emit) => {
+        return (0,observe/* observe */.lB)(observerId, { onLogs, onError }, (emit) => {
             let previousBlockNumber;
             if (fromBlock !== undefined)
                 previousBlockNumber = fromBlock - 1n;
             let filter;
             let initialized = false;
-            const unwatch = poll(async () => {
+            const unwatch = (0,poll/* poll */.w)(async () => {
                 if (!initialized) {
                     try {
                         filter = (await (0,getAction/* getAction */.T)(client, createEventFilter, 'createEventFilter')({
@@ -6817,18 +7115,18 @@ function watchEvent(client, { address, args, batch = true, event, events, fromBl
                 try {
                     let logs;
                     if (filter) {
-                        logs = await (0,getAction/* getAction */.T)(client, getFilterChanges, 'getFilterChanges')({ filter });
+                        logs = await (0,getAction/* getAction */.T)(client, getFilterChanges/* getFilterChanges */.I, 'getFilterChanges')({ filter });
                     }
                     else {
                         // If the filter doesn't exist, we will fall back to use `getLogs`.
                         // The fall back exists because some RPC Providers do not support filters.
                         // Fetch the block number to use for `getLogs`.
-                        const blockNumber = await (0,getAction/* getAction */.T)(client, getBlockNumber, 'getBlockNumber')({});
+                        const blockNumber = await (0,getAction/* getAction */.T)(client, getBlockNumber/* getBlockNumber */.G, 'getBlockNumber')({});
                         // If the block number has changed, we will need to fetch the logs.
                         // If the block number doesn't exist, we are yet to reach the first poll interval,
                         // so do not emit any logs.
                         if (previousBlockNumber && previousBlockNumber !== blockNumber) {
-                            logs = await (0,getAction/* getAction */.T)(client, getLogs, 'getLogs')({
+                            logs = await (0,getAction/* getAction */.T)(client, getLogs/* getLogs */.a, 'getLogs')({
                                 address,
                                 args,
                                 event: event,
@@ -6863,7 +7161,7 @@ function watchEvent(client, { address, args, batch = true, event, events, fromBl
             });
             return async () => {
                 if (filter)
-                    await (0,getAction/* getAction */.T)(client, uninstallFilter, 'uninstallFilter')({ filter });
+                    await (0,getAction/* getAction */.T)(client, uninstallFilter/* uninstallFilter */.Z, 'uninstallFilter')({ filter });
                 unwatch();
             };
         });
@@ -6877,7 +7175,7 @@ function watchEvent(client, { address, args, batch = true, event, events, fromBl
                 let topics = [];
                 if (events_) {
                     topics = [
-                        events_.flatMap((event) => encodeEventTopics({
+                        events_.flatMap((event) => (0,encodeEventTopics/* encodeEventTopics */.R)({
                             abi: [event],
                             eventName: event.name,
                             args,
@@ -6893,13 +7191,13 @@ function watchEvent(client, { address, args, batch = true, event, events, fromBl
                             return;
                         const log = data.result;
                         try {
-                            const { eventName, args } = decodeEventLog({
+                            const { eventName, args } = (0,decodeEventLog/* decodeEventLog */.j)({
                                 abi: events_ ?? [],
                                 data: log.data,
                                 topics: log.topics,
                                 strict,
                             });
-                            const formatted = formatLog(log, { args, eventName });
+                            const formatted = (0,formatters_log/* formatLog */.e)(log, { args, eventName });
                             onLogs([formatted]);
                         }
                         catch (err) {
@@ -6914,7 +7212,7 @@ function watchEvent(client, { address, args, batch = true, event, events, fromBl
                                 isUnnamed = err.abiItem.inputs?.some((x) => !('name' in x && x.name));
                             }
                             // Set args to empty if there is an error decoding (e.g. indexed/non-indexed params mismatch).
-                            const formatted = formatLog(log, {
+                            const formatted = (0,formatters_log/* formatLog */.e)(log, {
                                 args: isUnnamed ? [] : {},
                                 eventName,
                             });
@@ -6984,9 +7282,9 @@ function watchPendingTransactions(client, { batch = true, onError, onTransaction
             batch,
             pollingInterval,
         ]);
-        return observe(observerId, { onTransactions, onError }, (emit) => {
+        return (0,observe/* observe */.lB)(observerId, { onTransactions, onError }, (emit) => {
             let filter;
-            const unwatch = poll(async () => {
+            const unwatch = (0,poll/* poll */.w)(async () => {
                 try {
                     if (!filter) {
                         try {
@@ -6998,7 +7296,7 @@ function watchPendingTransactions(client, { batch = true, onError, onTransaction
                             throw err;
                         }
                     }
-                    const hashes = await (0,getAction/* getAction */.T)(client, getFilterChanges, 'getFilterChanges')({ filter });
+                    const hashes = await (0,getAction/* getAction */.T)(client, getFilterChanges/* getFilterChanges */.I, 'getFilterChanges')({ filter });
                     if (hashes.length === 0)
                         return;
                     if (batch)
@@ -7016,7 +7314,7 @@ function watchPendingTransactions(client, { batch = true, onError, onTransaction
             });
             return async () => {
                 if (filter)
-                    await (0,getAction/* getAction */.T)(client, uninstallFilter, 'uninstallFilter')({ filter });
+                    await (0,getAction/* getAction */.T)(client, uninstallFilter/* uninstallFilter */.Z, 'uninstallFilter')({ filter });
                 unwatch();
             };
         });
@@ -7109,19 +7407,19 @@ function publicActions(client) {
     return {
         call: (args) => (0,call/* call */.T1)(client, args),
         createBlockFilter: () => createBlockFilter(client),
-        createContractEventFilter: (args) => createContractEventFilter(client, args),
+        createContractEventFilter: (args) => (0,createContractEventFilter/* createContractEventFilter */.X)(client, args),
         createEventFilter: (args) => createEventFilter(client, args),
         createPendingTransactionFilter: () => createPendingTransactionFilter(client),
-        estimateContractGas: (args) => estimateContractGas(client, args),
+        estimateContractGas: (args) => (0,estimateContractGas/* estimateContractGas */.W)(client, args),
         estimateGas: (args) => (0,estimateGas/* estimateGas */.Q)(client, args),
         getBalance: (args) => getBalance(client, args),
         getBlobBaseFee: () => getBlobBaseFee(client),
         getBlock: (args) => (0,getBlock/* getBlock */.g)(client, args),
-        getBlockNumber: (args) => getBlockNumber(client, args),
+        getBlockNumber: (args) => (0,getBlockNumber/* getBlockNumber */.G)(client, args),
         getBlockTransactionCount: (args) => getBlockTransactionCount(client, args),
         getBytecode: (args) => getBytecode(client, args),
         getChainId: () => (0,getChainId/* getChainId */.T)(client),
-        getContractEvents: (args) => getContractEvents(client, args),
+        getContractEvents: (args) => (0,getContractEvents/* getContractEvents */.u)(client, args),
         getEnsAddress: (args) => getEnsAddress(client, args),
         getEnsAvatar: (args) => getEnsAvatar(client, args),
         getEnsName: (args) => getEnsName(client, args),
@@ -7129,10 +7427,10 @@ function publicActions(client) {
         getEnsText: (args) => getEnsText(client, args),
         getFeeHistory: (args) => getFeeHistory(client, args),
         estimateFeesPerGas: (args) => (0,estimateFeesPerGas/* estimateFeesPerGas */._)(client, args),
-        getFilterChanges: (args) => getFilterChanges(client, args),
+        getFilterChanges: (args) => (0,getFilterChanges/* getFilterChanges */.I)(client, args),
         getFilterLogs: (args) => getFilterLogs(client, args),
         getGasPrice: () => (0,getGasPrice/* getGasPrice */.L)(client),
-        getLogs: (args) => getLogs(client, args),
+        getLogs: (args) => (0,getLogs/* getLogs */.a)(client, args),
         getProof: (args) => getProof(client, args),
         estimateMaxPriorityFeePerGas: (args) => (0,estimateMaxPriorityFeePerGas/* estimateMaxPriorityFeePerGas */.b)(client, args),
         getStorageAt: (args) => getStorageAt(client, args),
@@ -7142,16 +7440,16 @@ function publicActions(client) {
         getTransactionReceipt: (args) => getTransactionReceipt(client, args),
         multicall: (args) => multicall(client, args),
         prepareTransactionRequest: (args) => (0,prepareTransactionRequest/* prepareTransactionRequest */.f)(client, args),
-        readContract: (args) => readContract(client, args),
+        readContract: (args) => (0,readContract/* readContract */.J)(client, args),
         sendRawTransaction: (args) => (0,sendRawTransaction/* sendRawTransaction */.L)(client, args),
-        simulateContract: (args) => simulateContract(client, args),
+        simulateContract: (args) => (0,simulateContract/* simulateContract */.v)(client, args),
         verifyMessage: (args) => verifyMessage(client, args),
         verifyTypedData: (args) => verifyTypedData(client, args),
-        uninstallFilter: (args) => uninstallFilter(client, args),
+        uninstallFilter: (args) => (0,uninstallFilter/* uninstallFilter */.Z)(client, args),
         waitForTransactionReceipt: (args) => waitForTransactionReceipt(client, args),
         watchBlocks: (args) => watchBlocks(client, args),
         watchBlockNumber: (args) => watchBlockNumber(client, args),
-        watchContractEvent: (args) => watchContractEvent(client, args),
+        watchContractEvent: (args) => (0,watchContractEvent/* watchContractEvent */.q)(client, args),
         watchEvent: (args) => watchEvent(client, args),
         watchPendingTransactions: (args) => watchPendingTransactions(client, args),
     };
@@ -7193,7 +7491,7 @@ function createPublicClient(parameters) {
 
 /***/ }),
 
-/***/ 1298:
+/***/ 4928:
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 
@@ -7249,210 +7547,8 @@ async function addChain(client, { chain }) {
 //# sourceMappingURL=addChain.js.map
 // EXTERNAL MODULE: ./node_modules/viem/_esm/utils/abi/encodeDeployData.js
 var encodeDeployData = __webpack_require__(5842);
-// EXTERNAL MODULE: ./node_modules/viem/_esm/accounts/utils/parseAccount.js
-var parseAccount = __webpack_require__(3033);
-// EXTERNAL MODULE: ./node_modules/viem/_esm/errors/base.js
-var base = __webpack_require__(6329);
-;// CONCATENATED MODULE: ./node_modules/viem/_esm/errors/account.js
-
-class AccountNotFoundError extends base/* BaseError */.C {
-    constructor({ docsPath } = {}) {
-        super([
-            'Could not find an Account to execute with this Action.',
-            'Please provide an Account with the `account` argument on the Action, or by supplying an `account` to the WalletClient.',
-        ].join('\n'), {
-            docsPath,
-            docsSlug: 'account',
-        });
-        Object.defineProperty(this, "name", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: 'AccountNotFoundError'
-        });
-    }
-}
-//# sourceMappingURL=account.js.map
-// EXTERNAL MODULE: ./node_modules/viem/_esm/errors/chain.js
-var errors_chain = __webpack_require__(8703);
-;// CONCATENATED MODULE: ./node_modules/viem/_esm/utils/chain/assertCurrentChain.js
-
-function assertCurrentChain({ chain, currentChainId, }) {
-    if (!chain)
-        throw new errors_chain/* ChainNotFoundError */.jF();
-    if (currentChainId !== chain.id)
-        throw new errors_chain/* ChainMismatchError */.EH({ chain, currentChainId });
-}
-//# sourceMappingURL=assertCurrentChain.js.map
-// EXTERNAL MODULE: ./node_modules/viem/_esm/errors/node.js
-var node = __webpack_require__(2592);
-// EXTERNAL MODULE: ./node_modules/viem/_esm/errors/transaction.js
-var transaction = __webpack_require__(8990);
-// EXTERNAL MODULE: ./node_modules/viem/_esm/utils/errors/getNodeError.js
-var getNodeError = __webpack_require__(1772);
-;// CONCATENATED MODULE: ./node_modules/viem/_esm/utils/errors/getTransactionError.js
-
-
-
-function getTransactionError(err, { docsPath, ...args }) {
-    const cause = (() => {
-        const cause = (0,getNodeError/* getNodeError */.l)(err, args);
-        if (cause instanceof node/* UnknownNodeError */.RM)
-            return err;
-        return cause;
-    })();
-    return new transaction/* TransactionExecutionError */.$s(cause, {
-        docsPath,
-        ...args,
-    });
-}
-//# sourceMappingURL=getTransactionError.js.map
-// EXTERNAL MODULE: ./node_modules/viem/_esm/utils/formatters/extract.js
-var extract = __webpack_require__(9789);
-// EXTERNAL MODULE: ./node_modules/viem/_esm/utils/formatters/transactionRequest.js
-var transactionRequest = __webpack_require__(7671);
-// EXTERNAL MODULE: ./node_modules/viem/_esm/utils/getAction.js
-var getAction = __webpack_require__(3692);
-// EXTERNAL MODULE: ./node_modules/viem/_esm/utils/transaction/assertRequest.js
-var assertRequest = __webpack_require__(5414);
-// EXTERNAL MODULE: ./node_modules/viem/_esm/actions/wallet/prepareTransactionRequest.js + 13 modules
-var prepareTransactionRequest = __webpack_require__(1093);
-// EXTERNAL MODULE: ./node_modules/viem/_esm/actions/wallet/sendRawTransaction.js
-var sendRawTransaction = __webpack_require__(8498);
-;// CONCATENATED MODULE: ./node_modules/viem/_esm/actions/wallet/sendTransaction.js
-
-
-
-
-
-
-
-
-
-
-
-/**
- * Creates, signs, and sends a new transaction to the network.
- *
- * - Docs: https://viem.sh/docs/actions/wallet/sendTransaction
- * - Examples: https://stackblitz.com/github/wevm/viem/tree/main/examples/transactions/sending-transactions
- * - JSON-RPC Methods:
- *   - JSON-RPC Accounts: [`eth_sendTransaction`](https://ethereum.org/en/developers/docs/apis/json-rpc/#eth_sendtransaction)
- *   - Local Accounts: [`eth_sendRawTransaction`](https://ethereum.org/en/developers/docs/apis/json-rpc/#eth_sendrawtransaction)
- *
- * @param client - Client to use
- * @param parameters - {@link SendTransactionParameters}
- * @returns The [Transaction](https://viem.sh/docs/glossary/terms#transaction) hash. {@link SendTransactionReturnType}
- *
- * @example
- * import { createWalletClient, custom } from 'viem'
- * import { mainnet } from 'viem/chains'
- * import { sendTransaction } from 'viem/wallet'
- *
- * const client = createWalletClient({
- *   chain: mainnet,
- *   transport: custom(window.ethereum),
- * })
- * const hash = await sendTransaction(client, {
- *   account: '0xA0Cf798816D4b9b9866b5330EEa46a18382f251e',
- *   to: '0x70997970c51812dc3a010c7d01b50e0d17dc79c8',
- *   value: 1000000000000000000n,
- * })
- *
- * @example
- * // Account Hoisting
- * import { createWalletClient, http } from 'viem'
- * import { privateKeyToAccount } from 'viem/accounts'
- * import { mainnet } from 'viem/chains'
- * import { sendTransaction } from 'viem/wallet'
- *
- * const client = createWalletClient({
- *   account: privateKeyToAccount('0x…'),
- *   chain: mainnet,
- *   transport: http(),
- * })
- * const hash = await sendTransaction(client, {
- *   to: '0x70997970c51812dc3a010c7d01b50e0d17dc79c8',
- *   value: 1000000000000000000n,
- * })
- */
-async function sendTransaction(client, parameters) {
-    const { account: account_ = client.account, chain = client.chain, accessList, blobs, data, gas, gasPrice, maxFeePerBlobGas, maxFeePerGas, maxPriorityFeePerGas, nonce, to, value, ...rest } = parameters;
-    if (!account_)
-        throw new AccountNotFoundError({
-            docsPath: '/docs/actions/wallet/sendTransaction',
-        });
-    const account = (0,parseAccount/* parseAccount */.J)(account_);
-    try {
-        (0,assertRequest/* assertRequest */.c)(parameters);
-        let chainId;
-        if (chain !== null) {
-            chainId = await (0,getAction/* getAction */.T)(client, getChainId/* getChainId */.T, 'getChainId')({});
-            assertCurrentChain({
-                currentChainId: chainId,
-                chain,
-            });
-        }
-        if (account.type === 'local') {
-            // Prepare the request for signing (assign appropriate fees, etc.)
-            const request = await (0,getAction/* getAction */.T)(client, prepareTransactionRequest/* prepareTransactionRequest */.f, 'prepareTransactionRequest')({
-                account,
-                accessList,
-                blobs,
-                chain,
-                chainId,
-                data,
-                gas,
-                gasPrice,
-                maxFeePerBlobGas,
-                maxFeePerGas,
-                maxPriorityFeePerGas,
-                nonce,
-                parameters: [...prepareTransactionRequest/* defaultParameters */.M, 'sidecars'],
-                to,
-                value,
-                ...rest,
-            });
-            const serializer = chain?.serializers?.transaction;
-            const serializedTransaction = (await account.signTransaction(request, {
-                serializer,
-            }));
-            return await (0,getAction/* getAction */.T)(client, sendRawTransaction/* sendRawTransaction */.L, 'sendRawTransaction')({
-                serializedTransaction,
-            });
-        }
-        const chainFormat = client.chain?.formatters?.transactionRequest?.format;
-        const format = chainFormat || transactionRequest/* formatTransactionRequest */.Bv;
-        const request = format({
-            // Pick out extra data that might exist on the chain's transaction request type.
-            ...(0,extract/* extract */.o)(rest, { format: chainFormat }),
-            accessList,
-            blobs,
-            data,
-            from: account.address,
-            gas,
-            gasPrice,
-            maxFeePerBlobGas,
-            maxFeePerGas,
-            maxPriorityFeePerGas,
-            nonce,
-            to,
-            value,
-        });
-        return await client.request({
-            method: 'eth_sendTransaction',
-            params: [request],
-        }, { retryCount: 0 });
-    }
-    catch (err) {
-        throw getTransactionError(err, {
-            ...parameters,
-            account,
-            chain: parameters.chain || undefined,
-        });
-    }
-}
-//# sourceMappingURL=sendTransaction.js.map
+// EXTERNAL MODULE: ./node_modules/viem/_esm/actions/wallet/sendTransaction.js + 1 modules
+var sendTransaction = __webpack_require__(6479);
 ;// CONCATENATED MODULE: ./node_modules/viem/_esm/actions/wallet/deployContract.js
 
 
@@ -7486,7 +7582,7 @@ async function sendTransaction(client, parameters) {
 function deployContract(walletClient, parameters) {
     const { abi, args, bytecode, ...request } = parameters;
     const calldata = (0,encodeDeployData/* encodeDeployData */.m)({ abi, args, bytecode });
-    return sendTransaction(walletClient, {
+    return (0,sendTransaction/* sendTransaction */.v)(walletClient, {
         ...request,
         data: calldata,
     });
@@ -7549,6 +7645,8 @@ async function getPermissions(client) {
     return permissions;
 }
 //# sourceMappingURL=getPermissions.js.map
+// EXTERNAL MODULE: ./node_modules/viem/_esm/actions/wallet/prepareTransactionRequest.js + 13 modules
+var prepareTransactionRequest = __webpack_require__(1093);
 ;// CONCATENATED MODULE: ./node_modules/viem/_esm/actions/wallet/requestAddresses.js
 
 /**
@@ -7611,6 +7709,12 @@ async function requestPermissions(client, permissions) {
     }, { retryCount: 0 });
 }
 //# sourceMappingURL=requestPermissions.js.map
+// EXTERNAL MODULE: ./node_modules/viem/_esm/actions/wallet/sendRawTransaction.js
+var sendRawTransaction = __webpack_require__(8498);
+// EXTERNAL MODULE: ./node_modules/viem/_esm/accounts/utils/parseAccount.js
+var parseAccount = __webpack_require__(3033);
+// EXTERNAL MODULE: ./node_modules/viem/_esm/errors/account.js
+var errors_account = __webpack_require__(4337);
 ;// CONCATENATED MODULE: ./node_modules/viem/_esm/actions/wallet/signMessage.js
 
 
@@ -7663,7 +7767,7 @@ async function requestPermissions(client, permissions) {
  */
 async function signMessage(client, { account: account_ = client.account, message, }) {
     if (!account_)
-        throw new AccountNotFoundError({
+        throw new errors_account/* AccountNotFoundError */.T({
             docsPath: '/docs/actions/wallet/signMessage',
         });
     const account = (0,parseAccount/* parseAccount */.J)(account_);
@@ -7682,6 +7786,14 @@ async function signMessage(client, { account: account_ = client.account, message
     }, { retryCount: 0 });
 }
 //# sourceMappingURL=signMessage.js.map
+// EXTERNAL MODULE: ./node_modules/viem/_esm/utils/chain/assertCurrentChain.js
+var assertCurrentChain = __webpack_require__(3190);
+// EXTERNAL MODULE: ./node_modules/viem/_esm/utils/formatters/transactionRequest.js
+var transactionRequest = __webpack_require__(7671);
+// EXTERNAL MODULE: ./node_modules/viem/_esm/utils/getAction.js
+var getAction = __webpack_require__(3692);
+// EXTERNAL MODULE: ./node_modules/viem/_esm/utils/transaction/assertRequest.js
+var assertRequest = __webpack_require__(5414);
 ;// CONCATENATED MODULE: ./node_modules/viem/_esm/actions/wallet/signTransaction.js
 
 
@@ -7738,7 +7850,7 @@ async function signMessage(client, { account: account_ = client.account, message
 async function signTransaction(client, parameters) {
     const { account: account_ = client.account, chain = client.chain, ...transaction } = parameters;
     if (!account_)
-        throw new AccountNotFoundError({
+        throw new errors_account/* AccountNotFoundError */.T({
             docsPath: '/docs/actions/wallet/signTransaction',
         });
     const account = (0,parseAccount/* parseAccount */.J)(account_);
@@ -7748,7 +7860,7 @@ async function signTransaction(client, parameters) {
     });
     const chainId = await (0,getAction/* getAction */.T)(client, getChainId/* getChainId */.T, 'getChainId')({});
     if (chain !== null)
-        assertCurrentChain({
+        (0,assertCurrentChain/* assertCurrentChain */.v)({
             currentChainId: chainId,
             chain,
         });
@@ -7885,7 +7997,7 @@ var utils_typedData = __webpack_require__(988);
 async function signTypedData(client, parameters) {
     const { account: account_ = client.account, domain, message, primaryType, } = parameters;
     if (!account_)
-        throw new AccountNotFoundError({
+        throw new errors_account/* AccountNotFoundError */.T({
             docsPath: '/docs/actions/wallet/signTypedData',
         });
     const account = (0,parseAccount/* parseAccount */.J)(account_);
@@ -7975,76 +8087,8 @@ async function watchAsset(client, params) {
     return added;
 }
 //# sourceMappingURL=watchAsset.js.map
-// EXTERNAL MODULE: ./node_modules/viem/_esm/utils/abi/encodeFunctionData.js + 1 modules
-var encodeFunctionData = __webpack_require__(8503);
-;// CONCATENATED MODULE: ./node_modules/viem/_esm/actions/wallet/writeContract.js
-
-
-
-/**
- * Executes a write function on a contract.
- *
- * - Docs: https://viem.sh/docs/contract/writeContract
- * - Examples: https://stackblitz.com/github/wevm/viem/tree/main/examples/contracts/writing-to-contracts
- *
- * A "write" function on a Solidity contract modifies the state of the blockchain. These types of functions require gas to be executed, and hence a [Transaction](https://viem.sh/docs/glossary/terms) is needed to be broadcast in order to change the state.
- *
- * Internally, uses a [Wallet Client](https://viem.sh/docs/clients/wallet) to call the [`sendTransaction` action](https://viem.sh/docs/actions/wallet/sendTransaction) with [ABI-encoded `data`](https://viem.sh/docs/contract/encodeFunctionData).
- *
- * __Warning: The `write` internally sends a transaction – it does not validate if the contract write will succeed (the contract may throw an error). It is highly recommended to [simulate the contract write with `contract.simulate`](https://viem.sh/docs/contract/writeContract#usage) before you execute it.__
- *
- * @param client - Client to use
- * @param parameters - {@link WriteContractParameters}
- * @returns A [Transaction Hash](https://viem.sh/docs/glossary/terms#hash). {@link WriteContractReturnType}
- *
- * @example
- * import { createWalletClient, custom, parseAbi } from 'viem'
- * import { mainnet } from 'viem/chains'
- * import { writeContract } from 'viem/contract'
- *
- * const client = createWalletClient({
- *   chain: mainnet,
- *   transport: custom(window.ethereum),
- * })
- * const hash = await writeContract(client, {
- *   address: '0xFBA3912Ca04dd458c843e2EE08967fC04f3579c2',
- *   abi: parseAbi(['function mint(uint32 tokenId) nonpayable']),
- *   functionName: 'mint',
- *   args: [69420],
- * })
- *
- * @example
- * // With Validation
- * import { createWalletClient, http, parseAbi } from 'viem'
- * import { mainnet } from 'viem/chains'
- * import { simulateContract, writeContract } from 'viem/contract'
- *
- * const client = createWalletClient({
- *   chain: mainnet,
- *   transport: http(),
- * })
- * const { request } = await simulateContract(client, {
- *   address: '0xFBA3912Ca04dd458c843e2EE08967fC04f3579c2',
- *   abi: parseAbi(['function mint(uint32 tokenId) nonpayable']),
- *   functionName: 'mint',
- *   args: [69420],
- * }
- * const hash = await writeContract(client, request)
- */
-async function writeContract(client, parameters) {
-    const { abi, address, args, dataSuffix, functionName, ...request } = parameters;
-    const data = (0,encodeFunctionData/* encodeFunctionData */.p)({
-        abi,
-        args,
-        functionName,
-    });
-    return (0,getAction/* getAction */.T)(client, sendTransaction, 'sendTransaction')({
-        data: `${data}${dataSuffix ? dataSuffix.replace('0x', '') : ''}`,
-        to: address,
-        ...request,
-    });
-}
-//# sourceMappingURL=writeContract.js.map
+// EXTERNAL MODULE: ./node_modules/viem/_esm/actions/wallet/writeContract.js
+var writeContract = __webpack_require__(9177);
 ;// CONCATENATED MODULE: ./node_modules/viem/_esm/clients/decorators/wallet.js
 
 
@@ -8074,13 +8118,13 @@ function walletActions(client) {
         requestAddresses: () => requestAddresses(client),
         requestPermissions: (args) => requestPermissions(client, args),
         sendRawTransaction: (args) => (0,sendRawTransaction/* sendRawTransaction */.L)(client, args),
-        sendTransaction: (args) => sendTransaction(client, args),
+        sendTransaction: (args) => (0,sendTransaction/* sendTransaction */.v)(client, args),
         signMessage: (args) => signMessage(client, args),
         signTransaction: (args) => signTransaction(client, args),
         signTypedData: (args) => signTypedData(client, args),
         switchChain: (args) => switchChain(client, args),
         watchAsset: (args) => watchAsset(client, args),
-        writeContract: (args) => writeContract(client, args),
+        writeContract: (args) => (0,writeContract/* writeContract */.E)(client, args),
     };
 }
 //# sourceMappingURL=wallet.js.map
@@ -10523,6 +10567,35 @@ class UnsupportedPackedAbiType extends _base_js__WEBPACK_IMPORTED_MODULE_0__/* .
 
 /***/ }),
 
+/***/ 4337:
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   T: () => (/* binding */ AccountNotFoundError)
+/* harmony export */ });
+/* harmony import */ var _base_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(6329);
+
+class AccountNotFoundError extends _base_js__WEBPACK_IMPORTED_MODULE_0__/* .BaseError */ .C {
+    constructor({ docsPath } = {}) {
+        super([
+            'Could not find an Account to execute with this Action.',
+            'Please provide an Account with the `account` argument on the Action, or by supplying an `account` to the WalletClient.',
+        ].join('\n'), {
+            docsPath,
+            docsSlug: 'account',
+        });
+        Object.defineProperty(this, "name", {
+            enumerable: true,
+            configurable: true,
+            writable: true,
+            value: 'AccountNotFoundError'
+        });
+    }
+}
+//# sourceMappingURL=account.js.map
+
+/***/ }),
+
 /***/ 4306:
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
@@ -12919,6 +12992,107 @@ function decodeErrorResult(parameters) {
 
 /***/ }),
 
+/***/ 9483:
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   j: () => (/* binding */ decodeEventLog)
+/* harmony export */ });
+/* harmony import */ var _errors_abi_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(7372);
+/* harmony import */ var _data_size_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(5182);
+/* harmony import */ var _hash_toEventSelector_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(9777);
+/* harmony import */ var _errors_cursor_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(8146);
+/* harmony import */ var _decodeAbiParameters_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(1965);
+/* harmony import */ var _formatAbiItem_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(5167);
+
+
+
+
+
+
+const docsPath = '/docs/contract/decodeEventLog';
+function decodeEventLog(parameters) {
+    const { abi, data, strict: strict_, topics, } = parameters;
+    const strict = strict_ ?? true;
+    const [signature, ...argTopics] = topics;
+    if (!signature)
+        throw new _errors_abi_js__WEBPACK_IMPORTED_MODULE_0__/* .AbiEventSignatureEmptyTopicsError */ ._z({ docsPath });
+    const abiItem = abi.find((x) => x.type === 'event' &&
+        signature === (0,_hash_toEventSelector_js__WEBPACK_IMPORTED_MODULE_1__/* .toEventSelector */ .h)((0,_formatAbiItem_js__WEBPACK_IMPORTED_MODULE_2__/* .formatAbiItem */ .B)(x)));
+    if (!(abiItem && 'name' in abiItem) || abiItem.type !== 'event')
+        throw new _errors_abi_js__WEBPACK_IMPORTED_MODULE_0__/* .AbiEventSignatureNotFoundError */ .kE(signature, { docsPath });
+    const { name, inputs } = abiItem;
+    const isUnnamed = inputs?.some((x) => !('name' in x && x.name));
+    let args = isUnnamed ? [] : {};
+    // Decode topics (indexed args).
+    const indexedInputs = inputs.filter((x) => 'indexed' in x && x.indexed);
+    for (let i = 0; i < indexedInputs.length; i++) {
+        const param = indexedInputs[i];
+        const topic = argTopics[i];
+        if (!topic)
+            throw new _errors_abi_js__WEBPACK_IMPORTED_MODULE_0__/* .DecodeLogTopicsMismatch */ .l3({
+                abiItem,
+                param: param,
+            });
+        args[isUnnamed ? i : param.name || i] = decodeTopic({ param, value: topic });
+    }
+    // Decode data (non-indexed args).
+    const nonIndexedInputs = inputs.filter((x) => !('indexed' in x && x.indexed));
+    if (nonIndexedInputs.length > 0) {
+        if (data && data !== '0x') {
+            try {
+                const decodedData = (0,_decodeAbiParameters_js__WEBPACK_IMPORTED_MODULE_3__/* .decodeAbiParameters */ .n)(nonIndexedInputs, data);
+                if (decodedData) {
+                    if (isUnnamed)
+                        args = [...args, ...decodedData];
+                    else {
+                        for (let i = 0; i < nonIndexedInputs.length; i++) {
+                            args[nonIndexedInputs[i].name] = decodedData[i];
+                        }
+                    }
+                }
+            }
+            catch (err) {
+                if (strict) {
+                    if (err instanceof _errors_abi_js__WEBPACK_IMPORTED_MODULE_0__/* .AbiDecodingDataSizeTooSmallError */ .Iy ||
+                        err instanceof _errors_cursor_js__WEBPACK_IMPORTED_MODULE_4__/* .PositionOutOfBoundsError */ .SK)
+                        throw new _errors_abi_js__WEBPACK_IMPORTED_MODULE_0__/* .DecodeLogDataMismatch */ .fo({
+                            abiItem,
+                            data: data,
+                            params: nonIndexedInputs,
+                            size: (0,_data_size_js__WEBPACK_IMPORTED_MODULE_5__/* .size */ .E)(data),
+                        });
+                    throw err;
+                }
+            }
+        }
+        else if (strict) {
+            throw new _errors_abi_js__WEBPACK_IMPORTED_MODULE_0__/* .DecodeLogDataMismatch */ .fo({
+                abiItem,
+                data: '0x',
+                params: nonIndexedInputs,
+                size: 0,
+            });
+        }
+    }
+    return {
+        eventName: name,
+        args: Object.values(args).length > 0 ? args : undefined,
+    };
+}
+function decodeTopic({ param, value }) {
+    if (param.type === 'string' ||
+        param.type === 'bytes' ||
+        param.type === 'tuple' ||
+        param.type.match(/^(.*)\[(\d+)?\]$/))
+        return value;
+    const decodedArg = (0,_decodeAbiParameters_js__WEBPACK_IMPORTED_MODULE_3__/* .decodeAbiParameters */ .n)([param], value) || [];
+    return decodedArg[0];
+}
+//# sourceMappingURL=decodeEventLog.js.map
+
+/***/ }),
+
 /***/ 6652:
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
@@ -13256,6 +13430,98 @@ function encodeDeployData(parameters) {
 
 /***/ }),
 
+/***/ 5226:
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+
+// EXPORTS
+__webpack_require__.d(__webpack_exports__, {
+  R: () => (/* binding */ encodeEventTopics)
+});
+
+// EXTERNAL MODULE: ./node_modules/viem/_esm/errors/abi.js
+var errors_abi = __webpack_require__(7372);
+// EXTERNAL MODULE: ./node_modules/viem/_esm/errors/base.js
+var base = __webpack_require__(6329);
+;// CONCATENATED MODULE: ./node_modules/viem/_esm/errors/log.js
+
+class FilterTypeNotSupportedError extends base/* BaseError */.C {
+    constructor(type) {
+        super(`Filter type "${type}" is not supported.`);
+        Object.defineProperty(this, "name", {
+            enumerable: true,
+            configurable: true,
+            writable: true,
+            value: 'FilterTypeNotSupportedError'
+        });
+    }
+}
+//# sourceMappingURL=log.js.map
+// EXTERNAL MODULE: ./node_modules/viem/_esm/utils/encoding/toBytes.js
+var toBytes = __webpack_require__(4706);
+// EXTERNAL MODULE: ./node_modules/viem/_esm/utils/hash/keccak256.js + 2 modules
+var keccak256 = __webpack_require__(8729);
+// EXTERNAL MODULE: ./node_modules/viem/_esm/utils/hash/toEventSelector.js
+var toEventSelector = __webpack_require__(9777);
+// EXTERNAL MODULE: ./node_modules/viem/_esm/utils/abi/encodeAbiParameters.js
+var encodeAbiParameters = __webpack_require__(4531);
+// EXTERNAL MODULE: ./node_modules/viem/_esm/utils/abi/formatAbiItem.js
+var formatAbiItem = __webpack_require__(5167);
+// EXTERNAL MODULE: ./node_modules/viem/_esm/utils/abi/getAbiItem.js
+var getAbiItem = __webpack_require__(4586);
+;// CONCATENATED MODULE: ./node_modules/viem/_esm/utils/abi/encodeEventTopics.js
+
+
+
+
+
+
+
+
+const docsPath = '/docs/contract/encodeEventTopics';
+function encodeEventTopics(parameters) {
+    const { abi, eventName, args } = parameters;
+    let abiItem = abi[0];
+    if (eventName) {
+        const item = (0,getAbiItem/* getAbiItem */.iY)({ abi, name: eventName });
+        if (!item)
+            throw new errors_abi/* AbiEventNotFoundError */.M_(eventName, { docsPath });
+        abiItem = item;
+    }
+    if (abiItem.type !== 'event')
+        throw new errors_abi/* AbiEventNotFoundError */.M_(undefined, { docsPath });
+    const definition = (0,formatAbiItem/* formatAbiItem */.B)(abiItem);
+    const signature = (0,toEventSelector/* toEventSelector */.h)(definition);
+    let topics = [];
+    if (args && 'inputs' in abiItem) {
+        const indexedInputs = abiItem.inputs?.filter((param) => 'indexed' in param && param.indexed);
+        const args_ = Array.isArray(args)
+            ? args
+            : Object.values(args).length > 0
+                ? indexedInputs?.map((x) => args[x.name]) ?? []
+                : [];
+        if (args_.length > 0) {
+            topics =
+                indexedInputs?.map((param, i) => Array.isArray(args_[i])
+                    ? args_[i].map((_, j) => encodeArg({ param, value: args_[i][j] }))
+                    : args_[i]
+                        ? encodeArg({ param, value: args_[i] })
+                        : null) ?? [];
+        }
+    }
+    return [signature, ...topics];
+}
+function encodeArg({ param, value, }) {
+    if (param.type === 'string' || param.type === 'bytes')
+        return (0,keccak256/* keccak256 */.S)((0,toBytes/* toBytes */.ZJ)(value));
+    if (param.type === 'tuple' || param.type.match(/^(.*)\[(\d+)?\]$/))
+        throw new FilterTypeNotSupportedError(param.type);
+    return (0,encodeAbiParameters/* encodeAbiParameters */.h)([param], [value]);
+}
+//# sourceMappingURL=encodeEventTopics.js.map
+
+/***/ }),
+
 /***/ 8503:
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
@@ -13503,6 +13769,76 @@ function getAmbiguousTypes(sourceParameters, targetParameters, args) {
     return;
 }
 //# sourceMappingURL=getAbiItem.js.map
+
+/***/ }),
+
+/***/ 8937:
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   p: () => (/* binding */ parseEventLogs)
+/* harmony export */ });
+/* harmony import */ var _index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(7372);
+/* harmony import */ var _decodeEventLog_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(9483);
+
+
+/**
+ * Extracts & decodes logs matching the provided signature(s) (`abi` + optional `eventName`)
+ * from a set of opaque logs.
+ *
+ * @param parameters - {@link ParseEventLogsParameters}
+ * @returns The logs. {@link ParseEventLogsReturnType}
+ *
+ * @example
+ * import { createClient, http } from 'viem'
+ * import { mainnet } from 'viem/chains'
+ * import { parseEventLogs } from 'viem/op-stack'
+ *
+ * const client = createClient({
+ *   chain: mainnet,
+ *   transport: http(),
+ * })
+ *
+ * const receipt = await getTransactionReceipt(client, {
+ *   hash: '0xec23b2ba4bc59ba61554507c1b1bc91649e6586eb2dd00c728e8ed0db8bb37ea',
+ * })
+ *
+ * const logs = parseEventLogs({ logs: receipt.logs })
+ * // [{ args: { ... }, eventName: 'TransactionDeposited', ... }, ...]
+ */
+function parseEventLogs({ abi, eventName, logs, strict = true, }) {
+    return logs
+        .map((log) => {
+        try {
+            const event = (0,_decodeEventLog_js__WEBPACK_IMPORTED_MODULE_0__/* .decodeEventLog */ .j)({
+                ...log,
+                abi,
+                strict,
+            });
+            if (eventName && !eventName.includes(event.eventName))
+                return null;
+            return { ...event, ...log };
+        }
+        catch (err) {
+            let eventName;
+            let isUnnamed;
+            if (err instanceof _index_js__WEBPACK_IMPORTED_MODULE_1__/* .AbiEventSignatureNotFoundError */ .kE)
+                return null;
+            if (err instanceof _index_js__WEBPACK_IMPORTED_MODULE_1__/* .DecodeLogDataMismatch */ .fo ||
+                err instanceof _index_js__WEBPACK_IMPORTED_MODULE_1__/* .DecodeLogTopicsMismatch */ .l3) {
+                // If strict mode is on, and log data/topics do not match event definition, skip.
+                if (strict)
+                    return null;
+                eventName = err.abiItem.name;
+                isUnnamed = err.abiItem.inputs?.some((x) => !('name' in x && x.name));
+            }
+            // Set args to empty if there is an error decoding (e.g. indexed/non-indexed params mismatch).
+            return { ...log, args: isUnnamed ? [] : {}, eventName };
+        }
+    })
+        .filter(Boolean);
+}
+//# sourceMappingURL=parseEventLogs.js.map
 
 /***/ }),
 
@@ -13842,6 +14178,24 @@ async function ccipRequest({ data, sender, urls, }) {
     throw error;
 }
 //# sourceMappingURL=ccip.js.map
+
+/***/ }),
+
+/***/ 3190:
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   v: () => (/* binding */ assertCurrentChain)
+/* harmony export */ });
+/* harmony import */ var _errors_chain_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(8703);
+
+function assertCurrentChain({ chain, currentChainId, }) {
+    if (!chain)
+        throw new _errors_chain_js__WEBPACK_IMPORTED_MODULE_0__/* .ChainNotFoundError */ .jF();
+    if (currentChainId !== chain.id)
+        throw new _errors_chain_js__WEBPACK_IMPORTED_MODULE_0__/* .ChainMismatchError */ .EH({ chain, currentChainId });
+}
+//# sourceMappingURL=assertCurrentChain.js.map
 
 /***/ }),
 
@@ -14859,6 +15213,54 @@ function stringToHex(value_, opts = {}) {
 
 /***/ }),
 
+/***/ 2350:
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   j: () => (/* binding */ getContractError)
+/* harmony export */ });
+/* harmony import */ var _errors_abi_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(7372);
+/* harmony import */ var _errors_base_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(6329);
+/* harmony import */ var _errors_contract_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(8863);
+/* harmony import */ var _errors_rpc_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(7513);
+
+
+
+
+const EXECUTION_REVERTED_ERROR_CODE = 3;
+function getContractError(err, { abi, address, args, docsPath, functionName, sender, }) {
+    const { code, data, message, shortMessage } = (err instanceof _errors_contract_js__WEBPACK_IMPORTED_MODULE_0__/* .RawContractError */ .$S
+        ? err
+        : err instanceof _errors_base_js__WEBPACK_IMPORTED_MODULE_1__/* .BaseError */ .C
+            ? err.walk((err) => 'data' in err) || err.walk()
+            : {});
+    const cause = (() => {
+        if (err instanceof _errors_abi_js__WEBPACK_IMPORTED_MODULE_2__/* .AbiDecodingZeroDataError */ .O)
+            return new _errors_contract_js__WEBPACK_IMPORTED_MODULE_0__/* .ContractFunctionZeroDataError */ .rR({ functionName });
+        if ([EXECUTION_REVERTED_ERROR_CODE, _errors_rpc_js__WEBPACK_IMPORTED_MODULE_3__/* .InternalRpcError */ .bq.code].includes(code) &&
+            (data || message || shortMessage)) {
+            return new _errors_contract_js__WEBPACK_IMPORTED_MODULE_0__/* .ContractFunctionRevertedError */ .M({
+                abi,
+                data: typeof data === 'object' ? data.data : data,
+                functionName,
+                message: shortMessage ?? message,
+            });
+        }
+        return err;
+    })();
+    return new _errors_contract_js__WEBPACK_IMPORTED_MODULE_0__/* .ContractFunctionExecutionError */ .bG(cause, {
+        abi,
+        args,
+        contractAddress: address,
+        docsPath,
+        functionName,
+        sender,
+    });
+}
+//# sourceMappingURL=getContractError.js.map
+
+/***/ }),
+
 /***/ 1772:
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
@@ -14928,6 +15330,30 @@ function getNodeError(err, args) {
     });
 }
 //# sourceMappingURL=getNodeError.js.map
+
+/***/ }),
+
+/***/ 3109:
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   g: () => (/* binding */ createFilterRequestScope)
+/* harmony export */ });
+/**
+ * Scopes `request` to the filter ID. If the client is a fallback, it will
+ * listen for responses and scope the child transport `request` function
+ * to the successful filter ID.
+ */
+function createFilterRequestScope(client, { method }) {
+    const requestMap = {};
+    if (client.transport.type === 'fallback')
+        client.transport.onResponse?.(({ method: method_, response: id, status, transport, }) => {
+            if (status === 'success' && method === method_)
+                requestMap[id] = transport.request;
+        });
+    return ((id) => requestMap[id] || client.request);
+}
+//# sourceMappingURL=createFilterRequestScope.js.map
 
 /***/ }),
 
@@ -15003,6 +15429,29 @@ function extract(value_, { format }) {
     return value;
 }
 //# sourceMappingURL=extract.js.map
+
+/***/ }),
+
+/***/ 7070:
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   e: () => (/* binding */ formatLog)
+/* harmony export */ });
+function formatLog(log, { args, eventName, } = {}) {
+    return {
+        ...log,
+        blockHash: log.blockHash ? log.blockHash : null,
+        blockNumber: log.blockNumber ? BigInt(log.blockNumber) : null,
+        logIndex: log.logIndex ? Number(log.logIndex) : null,
+        transactionHash: log.transactionHash ? log.transactionHash : null,
+        transactionIndex: log.transactionIndex
+            ? Number(log.transactionIndex)
+            : null,
+        ...(eventName ? { args, eventName } : {}),
+    };
+}
+//# sourceMappingURL=log.js.map
 
 /***/ }),
 
@@ -15730,6 +16179,96 @@ function toSignatureHash(fn) {
     return hashSignature(toSignature(fn));
 }
 //# sourceMappingURL=toSignatureHash.js.map
+
+/***/ }),
+
+/***/ 9726:
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   lB: () => (/* binding */ observe)
+/* harmony export */ });
+/* unused harmony exports listenersCache, cleanupCache */
+const listenersCache = /*#__PURE__*/ new Map();
+const cleanupCache = /*#__PURE__*/ new Map();
+let callbackCount = 0;
+/**
+ * @description Sets up an observer for a given function. If another function
+ * is set up under the same observer id, the function will only be called once
+ * for both instances of the observer.
+ */
+function observe(observerId, callbacks, fn) {
+    const callbackId = ++callbackCount;
+    const getListeners = () => listenersCache.get(observerId) || [];
+    const unsubscribe = () => {
+        const listeners = getListeners();
+        listenersCache.set(observerId, listeners.filter((cb) => cb.id !== callbackId));
+    };
+    const unwatch = () => {
+        const cleanup = cleanupCache.get(observerId);
+        if (getListeners().length === 1 && cleanup)
+            cleanup();
+        unsubscribe();
+    };
+    const listeners = getListeners();
+    listenersCache.set(observerId, [
+        ...listeners,
+        { id: callbackId, fns: callbacks },
+    ]);
+    if (listeners && listeners.length > 0)
+        return unwatch;
+    const emit = {};
+    for (const key in callbacks) {
+        emit[key] = ((...args) => {
+            const listeners = getListeners();
+            if (listeners.length === 0)
+                return;
+            for (const listener of listeners)
+                listener.fns[key]?.(...args);
+        });
+    }
+    const cleanup = fn(emit);
+    if (typeof cleanup === 'function')
+        cleanupCache.set(observerId, cleanup);
+    return unwatch;
+}
+//# sourceMappingURL=observe.js.map
+
+/***/ }),
+
+/***/ 5213:
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   w: () => (/* binding */ poll)
+/* harmony export */ });
+/* harmony import */ var _wait_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(669);
+
+/**
+ * @description Polls a function at a specified interval.
+ */
+function poll(fn, { emitOnBegin, initialWaitTime, interval }) {
+    let active = true;
+    const unwatch = () => (active = false);
+    const watch = async () => {
+        let data = undefined;
+        if (emitOnBegin)
+            data = await fn({ unpoll: unwatch });
+        const initialWait = (await initialWaitTime?.(data)) ?? interval;
+        await (0,_wait_js__WEBPACK_IMPORTED_MODULE_0__/* .wait */ .u)(initialWait);
+        const poll = async () => {
+            if (!active)
+                return;
+            await fn({ unpoll: unwatch });
+            await (0,_wait_js__WEBPACK_IMPORTED_MODULE_0__/* .wait */ .u)(interval);
+            poll();
+        };
+        poll();
+    };
+    watch();
+    return unwatch;
+}
+//# sourceMappingURL=poll.js.map
 
 /***/ }),
 
