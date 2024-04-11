@@ -17,9 +17,9 @@ const CTLXY_USD_FACILITY="0x993C7218C535589f5683D03Aa3cC485873B108d4"
 const CATALLAXY_FEED="0x16C06d4D1e63f070FCD786805AF6F7C2dd729aDC"
 
 const erc20 = [
-    "function allowance(address,address)",
+    "function allowance(address,address) view returns (uint)",
     "function approve(address,uint256)",
-    "function balanceOf(address)",
+    "function balanceOf(address) view returns(uint)",
     "function name()",
     "function symbol()",
     "function totalSupply()",
@@ -141,6 +141,13 @@ const drip = async () => {
     }
 }
 
+const updateWeth = async () => {
+
+    const wethBal = await weth.read.balanceOf([account])
+    $('#wethBal').textContent = wethBal
+
+}
+
 
 const simpleConnect = async () => {
     let _account, _transport
@@ -178,5 +185,7 @@ window.onload = async () => {
     $("#btnDrip").addEventListener('click', async () => {
         await drip()
     })
+
+    await updateWeth()
 
 }
