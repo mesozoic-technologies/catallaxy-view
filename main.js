@@ -86,7 +86,7 @@ const ctlxyTokenAbi = parseAbi(erc20.concat([
     "function totalBorrowsCurrent()",
 ]))
 
-const ctlxyUsdAbi = parseAbi(erc20.concat([]))
+const ctlxyUsdAbi = parseAbi(erc20)
 
 const jumpRateModelAbi = parseAbi([
     "function baseRatePerBlock()",
@@ -141,10 +141,37 @@ const drip = async () => {
     }
 }
 
-const updateWeth = async () => {
+const supply = async () => {
+    if ($('input[name="supply"]:checked').value == "ETH") {
+        const approved = await weth.read.allowance([account, CTLXY_ETH])
+    }
+}
 
+const updateWeth = async () => {
     const wethBal = await weth.read.balanceOf([account])
     $('#wethBal').textContent = wethBal
+}
+
+const updateCtlxyEth = async () => {
+
+    const ctlxyEthBal = await ctlxyEth.read.balanceOf([account])
+    $('#ctlxyEthBal').textContent = ctlxyEthBal
+
+}
+
+const updateCtlxyUsd = async () => {
+
+    console.log("ctlxy", ctlxyUsd)
+
+    const ctlxyUsdBal = await ctlxyUsd.read.balanceOf([account])
+    $('#ctlxyUsdBal').textContent = ctlxyUsdBal
+
+}
+
+const updateCtlxyCtlxyUsd = async () => {
+
+    const ctlxyCtlxyUsdBal = await ctlxyCtlxyUsd.read.balanceOf([account])
+    $('#ctlxyCtlxyUsdBal').textContent = ctlxyCtlxyUsdBal
 
 }
 
@@ -174,8 +201,8 @@ window.onload = async () => {
 
     weth = getContract({ address: FAUCET_WETH, abi: wethAbi, client: _client })
     ctlxyEth = getContract({ address: CTLXY_ETH, abi: ctlxyTokenAbi, client: _client })
-    ctlxyUsd = getContract({ addresss: CTLXY_USD, abi: ctlxyUsdAbi, client: _client })
-    ctlxyCtlxyUsd = getContract({ addresss: CTLXY_CTLXY_USD, abi: ctlxyTokenAbi, client: _client })
+    ctlxyUsd = getContract({ address: CTLXY_USD, abi: ctlxyUsdAbi, client: _client })
+    ctlxyCtlxyUsd = getContract({ address: CTLXY_CTLXY_USD, abi: ctlxyTokenAbi, client: _client })
     comptroller = getContract({ address: CATALLAXY_COMPTROLLER, abi: comptrollerAbi, cleint: _client })
     feed = getContract({ address: CATALLAXY_FEED, abi: feedAbi, client: _client })
     ctlxyEthInterestRate = getContract({ address: CTLXY_ETH_INTEREST_RATE, abi: jumpRateModelAbi, client: _client })
@@ -186,6 +213,13 @@ window.onload = async () => {
         await drip()
     })
 
+    $("#supply").addEventListener('click', async () => {
+        await supply()
+    })
+
     await updateWeth()
+    await updateCtlxyEth()
+    await updateCtlxyUsd()
+    await updateCtlxyCtlxyUsd()
 
 }

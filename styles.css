@@ -15,12 +15,10 @@ body {
     filter: grayscale(100%);
     color: white;
 
-    transform: scale(3);
+    transform: scale(2);
     transform-origin: top left;
-    width: 33.3333%;
-    height: 33.3333%;
-
-    
+    width: 50%;
+    height: 50%;
 }
 
 .btn {

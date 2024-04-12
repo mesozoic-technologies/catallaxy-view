@@ -18,19 +18,36 @@
             <p>No account found, use a browser wallet like frame.sh/rabby/metamask and allow access</p>
         </div>
 
-        <div id="balances">
-            <pre style="display:inline;"> Balances </pre>
-            <p> 
-                WETH 
-                <span id="wethBal"> </span>
-                <input type="button" class="btn" id="btnDrip" value="drip"> 
+        <div id="facility">
+            Catallaxy USD Facility
+            <p>
+                <span> ctlxyUSD: <span id="ctlxyUsdBal"/> </span>
+                <input type="button" class="btn" id="btnMint" value="mint">
             </p>
         </div>
 
-        <div id="erc20Hook" style="display:none">
-
+        <div id="collateral">
+            <pre> Collateral </pre>
+                <span> WETH: <span id="ctlxyEthBal"/> </span>
+                <span> ctlxyUSD: <span id="ctlxyCtlxyUsdBal"/> </span>
+            <pre> Deposit Collateral </pre>
+                <input type="radio" id="ETH" name="supply" value="ETH" checked>
+                <label for="ETH"> ETH </label>
+                <input type="radio" id="cltxyUSD" name="supply" value="ctlxyUSD">
+                <label for="ctlxyUSD"> ctlxyUSD </label>
+                <p>
+                    <input type="text" id="supplyAmount" name="supplyAmount"/>
+                    <input type="button" class="btn" id="supply" value="supply"/>
+                </p>
         </div>
 
-
+        <div id="balances">
+            <pre style="display:inline;"> Balances </pre>
+            <p> 
+                Wrapped Ether 
+                <span id="wethBal"></span>
+                <input type="button" class="btn" id="btnDrip" value="drip"> 
+            </p>
+        </div>
     </body>
 </html>
