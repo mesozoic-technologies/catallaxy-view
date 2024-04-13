@@ -105,7 +105,10 @@ const ctlxyUsdFacilityAbi = parseAbi([
 
 ])
 
+const MAXUINT  = BigInt(2)**BigInt(256) - BigInt(1);
+
 const $ = document.querySelector.bind(document);
+const $$ = document.querySelectorAll.bind(document);
 const ERR_ACCT = '0x' + '1'.repeat(40);
 
 let account, transport, publicClient, walletClient
@@ -141,10 +144,41 @@ const drip = async () => {
     }
 }
 
-const supply = async () => {
-    if ($('input[name="supply"]:checked').value == "ETH") {
-        const approved = await weth.read.allowance([account, CTLXY_ETH])
+const approve = async () => {
+    try {
+
+        const [a,b] = 
+            $('input[name="supply"]:checked').value == 'ETH' ? [ weth, ctlxyEth ] :
+            $('input[name="supply"]:checked').value == 'ctlxyUSD' ? [ ctlxyUsd, ctlxyCtlxyUsd ] :
+            null;
+
+        const { request } = await a.simulate.approve([b.address, MAXUINT])
+        const hash = walletClient.writeContract(request)
+        await publicClient.waitForTransactionReceipt({hash})
+
+    } catch (e) {
+        console.log("err", e)
     }
+}
+
+const supply = async () => {
+
+}
+
+const checkApprove = async () => {
+
+    console.log("?")
+
+    const contract = 
+        $('input[name="supply"]:checked').value == 'ETH' ? weth :
+        $('input[name="supply"]:checked').value == 'ctlxyUSD' ? ctlxyUsd :
+        null;
+
+    const approved = await contract.read.allowance([account, CTLXY_ETH])
+
+    $('#btnApprove').style.display = approved == 0 ? '' : 'none';
+    $('#btnSupply').style.display = approved == 0 ? 'none' : '';
+
 }
 
 const updateWeth = async () => {
@@ -160,8 +194,6 @@ const updateCtlxyEth = async () => {
 }
 
 const updateCtlxyUsd = async () => {
-
-    console.log("ctlxy", ctlxyUsd)
 
     const ctlxyUsdBal = await ctlxyUsd.read.balanceOf([account])
     $('#ctlxyUsdBal').textContent = ctlxyUsdBal
@@ -209,17 +241,18 @@ window.onload = async () => {
     ctlxyUsdInterestRate = getContract({ address: CTLXY_USD_INTEREST_RATE, abi: jumpRateModelAbi, client: _client })
     ctlxyCtlxyUsdInterestRate = getContract({ address: CTLXY_CTLXY_USD_INTEREST_RATE, abi: jumpRateModelAbi, client: _client })
 
-    $("#btnDrip").addEventListener('click', async () => {
-        await drip()
-    })
+    $("#btnDrip").addEventListener('click', async () => await drip())
+    $("#btnSupply").addEventListener('click', async () => await supply())
+    $("#btnApprove").addEventListener('click', async () => await approve())
 
-    $("#supply").addEventListener('click', async () => {
-        await supply()
-    })
+    $$('input[name="supply"]').forEach(input => 
+        input.addEventListener('click', async () => await checkApprove())
+    )
 
     await updateWeth()
     await updateCtlxyEth()
     await updateCtlxyUsd()
     await updateCtlxyCtlxyUsd()
+    await checkApprove()
 
 }
