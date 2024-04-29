@@ -13,7 +13,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "viem": "^2.9.15"
+    "viem": "^2.9.16"
   },
   "devDependencies": {
     "gh-pages": "^6.1.1",
@@ -23,11 +23,15 @@
   },
   "lite": {
     "port": 3000,
-    "files": [ "./*.{html,htm,css,js}" ],
+    "files": [
+      "./*.{html,htm,css,js}"
+    ],
     "logLevel": "info",
     "server": {
       "baseDir": ".",
-      "routes": { "/node_modules": "node_modules" }
+      "routes": {
+        "/node_modules": "node_modules"
+      }
     }
   }
 }

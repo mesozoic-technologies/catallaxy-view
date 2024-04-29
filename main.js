@@ -4,22 +4,24 @@ import { createPublicClient, createWalletClient, custom, decodeAbiParameters, en
 
 import { sepolia } from 'viem/chains'
 
-const FAUCET_WETH="0x05A5e11F6cb8b0BE8898A7ae21407f8D6e7f6fAE"
-const CATALLAXY_SOVEREIGN="0x9b3468120872287868f1Fadd55ea369624EbdfE9"
-const CTLXY_USD="0xee5E23Fb9364CeA4620FD8121fC213A54f97ad84"
-const CTLXY_USD_INTEREST_RATE="0xC826d2099967Cd9e15f5d3F5825ca1C3cE8216d7"
-const CTLXY_ETH_INTEREST_RATE="0x713af1bBa747796B18eC20a42D28208E14da406C"
-const CTLXY_CTLXY_USD_INTEREST_RATE="0xeDaF1e44de13eff2D4830F75dEeC10a1C0021e2C"
-const CATALLAXY_COMPTROLLER="0x79549588eF8a67e84c339062AF74D1B4BB5572e5"
-const CTLXY_CTLXY_USD="0x8Bfe66EA5361d9357255e52219b626181B2A4622"
-const CTLXY_ETH="0xdCaBB4336Fe4BfC97754E79082927dE5B53C008A"
-const CTLXY_USD_FACILITY="0x993C7218C535589f5683D03Aa3cC485873B108d4"
-const CATALLAXY_FEED="0x16C06d4D1e63f070FCD786805AF6F7C2dd729aDC"
+import 'viem/window'
+
+const FAUCET_WETH="0x7ED62241e4Fea7c68215B02d043531d1398A8497"
+const CATALLAXY_SOVEREIGN="0x66a62D4801D5dcaBE8655e5E08B49cE63fb04e54"
+const CTLXY_USD="0x879bC700b21D458c6Ec7d9367F2bCE4715863B8E"
+const CTLXY_USD_INTEREST_RATE="0x206Af05cdB003400cA7481485A274630dD72c5f8"
+const CTLXY_ETH_INTEREST_RATE="0x68cFf5E36dD0722eCd740625323EA706E426F53A"
+const CTLXY_CTLXY_USD_INTEREST_RATE="0x8110c6C1eeDF117d3F712d2E2a277C70072578b3"
+const CATALLAXY_COMPTROLLER="0xaD0C9c000f16fBd621eB57886cc2b2497092AcB7"
+const CTLXY_CTLXY_USD="0xA533C8BC7eA78fEc107b2fCc6d4AEb96950BD961"
+const CTLXY_ETH="0xAaa4E89aA4907D311E35d5D4D34E49B75fA77AF4"
+const CTLXY_USD_FACILITY="0xAbB0228808C0ba0d4907333bbd3c5633FAA5e539"
+const CATALLAXY_FEED="0x1881f19aD124bf05A4b3222E847baaFaEdDd8454"
 
 const erc20 = [
     "function allowance(address,address) view returns (uint)",
     "function approve(address,uint256)",
-    "function balanceOf(address) view returns(uint)",
+    "function balanceOf(address) view returns (uint)",
     "function name()",
     "function symbol()",
     "function totalSupply()",
@@ -36,17 +38,17 @@ const feedAbi = parseAbi([
     "function getTokenConfigBySymbol(string)",
     "function getTokenConfigBySymbolHash(bytes32)",
     "function getTokenConfigByUnderlying(address)",
-    "function getUnderlyingPrice(address)",
+    "function getUnderlyingPrice(address) view returns (uint256)",
     "function numTokens()",
-    "function price(string)",
+    "function price(string) view returns (uint256)",
 ])
 
 const comptrollerAbi = parseAbi([
-    "function accountAssets(address,uint256)",
-    "function allMarkets(uint256)",
+    "function accountAssets(address,uint) view returns (address)",
+    "function allMarkets(uint256) view",
     "function borrowAllowed(address,address,uint256)",
     "function borrowGuardianPaused(address)",
-    "function closeFactor()",
+    "function closeFactor() view returns (uint256)",
     "function enterMarkets(address[])",
     "function exitMarket(address)",
     "function feed()",
@@ -76,6 +78,7 @@ const ctlxyTokenAbi = parseAbi(erc20.concat([
     "function borrowBalanceCurrent(address)",
     "function borrowBalanceStored(address)",
     "function borrowRatePerBlock()",
+    "function mint(address,uint)",
     "function cash()",
     "function comptroller()",
     "function exchangeRateCurrent()",
@@ -102,7 +105,14 @@ const jumpRateModelAbi = parseAbi([
 const wethAbi = parseAbi(erc20.concat([ "function drip()" ]))
 
 const ctlxyUsdFacilityAbi = parseAbi([
-
+    "function borrowBalanceStored(address) view returns (uint)",
+    "function comptroller() view returns (address)",
+    "function ctlxyUsd() view returns (address)",
+    "function debts(address) view returns (uint)",
+    "function getAccountSnapshot(address) view returns (uint,uint,uint)",
+    "function liquidate(address,address,uint256,address)",
+    "function mint(address,uint256)",
+    "function repayBorrow(address,uint256)",
 ])
 
 const MAXUINT  = BigInt(2)**BigInt(256) - BigInt(1);
@@ -117,6 +127,10 @@ let comptroller, ctlxyEth, ctlxyCtlxyUsd, ctlxyUsdFacility, ctlxyUsd,
 let store = {}
 let chain = sepolia
 
+
+let isEthCollateral
+let isCtlxyUsdCollateral
+
 const updateCatallaxyStats = async () => {
 
 }
@@ -125,14 +139,35 @@ const updateHook = async () => {
     reset()
 }
 
-const updateUni = async () => {
+const addCollateral = async (e) => {
+
+    console.log("collateral", e)
 
 }
 
-const valueNFTs = async (nfts) => {
+const mint = async () => {
+    try {
+
+        const amount = $('#mintAmount').value
+
+        console.log("amount", amount)
+
+        const hash = await ctlxyUsdFacility.write.mint([account, amount])
+
+        console.log("hash", hash)
+
+        await publicClient.waitForTransactionReceipt({hash})
+
+        // const hash = await walletClient.writeContract(request)
+
+        // await publicClient.waitForTransactionReceipt({hash})
+
+
+    } catch (e) {
+        console.log("err", e)
+    }
 
 }
-
 
 const drip = async () => {
     try {
@@ -153,7 +188,7 @@ const approve = async () => {
             null;
 
         const { request } = await a.simulate.approve([b.address, MAXUINT])
-        const hash = walletClient.writeContract(request)
+        const hash = await walletClient.writeContract(request)
         await publicClient.waitForTransactionReceipt({hash})
 
     } catch (e) {
@@ -163,11 +198,37 @@ const approve = async () => {
 
 const supply = async () => {
 
+    try {
+
+        const market = 
+            $('input[name="supply"]:checked').value == 'ETH' ? ctlxyEth :
+            $('input[name="supply"]:checked').value == 'ctlxyUSD' ? ctlxyCtlxyUsd :
+            null;
+        
+        const amount = $('#supplyAmount').value
+
+        const { request } = await publicClient.simulateContract({
+            address: CTLXY_ETH,
+            abi: ctlxyTokenAbi,
+            functionName: 'mint',
+            account: account,
+            chainId: sepolia.id,
+            args: [ account, BigInt(amount) ]
+        })
+
+        const hash = await walletClient.writeContract(request)
+
+        await publicClient.waitForTransactionReceipt({hash})
+
+    } catch (e) {
+
+        console.log("err", e)
+
+    }
+
 }
 
 const checkApprove = async () => {
-
-    console.log("?")
 
     const contract = 
         $('input[name="supply"]:checked').value == 'ETH' ? weth :
@@ -207,13 +268,40 @@ const updateCtlxyCtlxyUsd = async () => {
 
 }
 
+const updateCollaterals = async () => {
+    let index = 0
+    while (true) {
+        try {
+
+            const collateral = await comptroller.read.accountAssets([account, index])
+
+            if (collateral == ctlxyEth.address) 
+                $('input[name="collateral"][value="ETH"]').checked = true
+
+            if (collateral == ctlxyCtlxyUsd.address)
+                $('input[name="collateral"][value="ctlxyUSD"]').checked = true
+
+            index++
+
+        } catch (e) { break; }
+    }
+}
+
+const updatePrices = async () => {
+
+    const ethPrice = await feed.read.getUnderlyingPrice([ctlxyEth.address])
+    $('#wethPrice').textContent = ethPrice / BigInt(1e18)
+
+}
 
 const simpleConnect = async () => {
     let _account, _transport
     try {
         if (!window.ethereum) throw new Error();
         [_account] = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        console.log("account", _account)
         _transport = custom(window.ethereum)
+        // _transport = http()
     } catch (error) {
         _account = ERR_ACCT
         _transport = http()
@@ -224,6 +312,8 @@ const simpleConnect = async () => {
 
 window.onload = async () => {
 
+    console.log("load");
+
     [account, transport] = await simpleConnect();
 
     walletClient = createWalletClient({ account, chain: chain, transport })
@@ -232,15 +322,19 @@ window.onload = async () => {
     const _client = {public: publicClient, wallet: walletClient}
 
     weth = getContract({ address: FAUCET_WETH, abi: wethAbi, client: _client })
+
     ctlxyEth = getContract({ address: CTLXY_ETH, abi: ctlxyTokenAbi, client: _client })
     ctlxyUsd = getContract({ address: CTLXY_USD, abi: ctlxyUsdAbi, client: _client })
     ctlxyCtlxyUsd = getContract({ address: CTLXY_CTLXY_USD, abi: ctlxyTokenAbi, client: _client })
-    comptroller = getContract({ address: CATALLAXY_COMPTROLLER, abi: comptrollerAbi, cleint: _client })
+    ctlxyUsdFacility = getContract({ address: CTLXY_USD_FACILITY, abi: ctlxyUsdFacilityAbi, client: _client })
+    comptroller = getContract({ address: CATALLAXY_COMPTROLLER, abi: comptrollerAbi, client: _client })
     feed = getContract({ address: CATALLAXY_FEED, abi: feedAbi, client: _client })
+
     ctlxyEthInterestRate = getContract({ address: CTLXY_ETH_INTEREST_RATE, abi: jumpRateModelAbi, client: _client })
     ctlxyUsdInterestRate = getContract({ address: CTLXY_USD_INTEREST_RATE, abi: jumpRateModelAbi, client: _client })
     ctlxyCtlxyUsdInterestRate = getContract({ address: CTLXY_CTLXY_USD_INTEREST_RATE, abi: jumpRateModelAbi, client: _client })
 
+    $("#btnMint").addEventListener('click', async () => await mint())
     $("#btnDrip").addEventListener('click', async () => await drip())
     $("#btnSupply").addEventListener('click', async () => await supply())
     $("#btnApprove").addEventListener('click', async () => await approve())
@@ -249,10 +343,16 @@ window.onload = async () => {
         input.addEventListener('click', async () => await checkApprove())
     )
 
+    $$('input[name="collateral"]').forEach(input => 
+        input.addEventListener('click', async (e) => await addCollateral(e))
+    )
+
     await updateWeth()
     await updateCtlxyEth()
     await updateCtlxyUsd()
     await updateCtlxyCtlxyUsd()
+    await updateCollaterals()
+    await updatePrices()
     await checkApprove()
 
 }
