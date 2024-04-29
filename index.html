@@ -19,18 +19,38 @@
         </div>
 
         <div id="facility">
-            Catallaxy USD Facility
             <p>
                 <span> ctlxyUSD: <span id="ctlxyUsdBal"/> </span>
+            </p>
+            <p>
+                <input type="text" id="mintAmount" name="mintAmount"/>
                 <input type="button" class="btn" id="btnMint" value="mint">
             </p>
         </div>
 
+        <div id="prices">
+            <p> Prices </p>
+            <p> 
+                <span> ctlxyUSD: <span id="ctlxyUsdPrice"/> 1 </span> 
+                <span> ETH: <span id="wethPrice"/> </span>
+            </p>
+        </div>
+
         <div id="collateral">
-            <pre> Collateral </pre>
-                <span> WETH: <span id="ctlxyEthBal"/> </span>
-                <span> ctlxyUSD: <span id="ctlxyCtlxyUsdBal"/> </span>
-            <pre> Deposit Collateral </pre>
+            <p>Your Collateral</p>
+            <input type="checkbox" id="collateral" name="collateral" value="ETH">
+            <label for="ETH"> ETH </label>
+            <input type="checkbox" id="collateral" name="collateral" value="ctlxyUSD">
+            <label for="ctlxyUSD"> ctlxyCtxlyUSD </label>
+        </div>
+
+        <div id="deposits">
+            <p> Your Deposits </p>
+            <p> 
+                <span> WETH: <span id="ctlxyEthBal"/></span>
+                <span> ctlxyUSD: <span id="ctlxyCtlxyUsdBal"/> </span> 
+            </p>
+            <p> Deposit </p>
                 <input type="radio" id="ETH" name="supply" value="ETH" checked>
                 <label for="ETH"> ETH </label>
                 <input type="radio" id="cltxyUSD" name="supply" value="ctlxyUSD">
@@ -43,7 +63,7 @@
         </div>
 
         <div id="balances">
-            <pre style="display:inline;"> Balances </pre>
+            <p style="display:inline;"> Balances </p>
             <p> 
                 Wrapped Ether 
                 <span id="wethBal"></span>

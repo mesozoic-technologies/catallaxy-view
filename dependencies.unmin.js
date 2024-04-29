@@ -12536,7 +12536,7 @@ __webpack_require__.d(__webpack_exports__, {
 });
 
 ;// CONCATENATED MODULE: ./node_modules/viem/_esm/errors/version.js
-const version = '2.9.15';
+const version = '2.9.16';
 //# sourceMappingURL=version.js.map
 ;// CONCATENATED MODULE: ./node_modules/viem/_esm/errors/utils.js
 

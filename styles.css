@@ -2,7 +2,6 @@ body {
     text-align: center;
     margin-left: auto;
     margin-right: auto;
-    font-family: monospace;
     justify-content: center;
     background: linear-gradient(rgba(0, 0, 0, 0.70), rgba(0, 0, 0, 0.0)), url('catallaxy.jpg');
     background-size: cover;
@@ -11,16 +10,23 @@ body {
     background-attachment: fixed;
     min-height: 100vh;
     margin: 0;
-    --webkit-filter: grayscale(100%);
-    filter: grayscale(100%);
-    color: white;
+    color: #fce300;
 
     transform: scale(2);
     transform-origin: top left;
     width: 50%;
     height: 50%;
+
+    /* font-family: 'SF Distant Galaxy', sans-serif;  */
+    font-family: monospace; 
+    font-weight: bold;
+    font-size: 10px;
+
 }
 
-.btn {
-    font-family: monospace;
+@font-face {
+    font-family: 'SF Distant Galaxy';
+    src: url('fonts/SF_Distant_Galaxy.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
 }
